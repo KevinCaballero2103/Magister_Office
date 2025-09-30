@@ -106,21 +106,12 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Productos</title>
     <link href="../css/bulma.min.css" rel="stylesheet">
+    <link href="../css/listados.css" rel="stylesheet">
+    
     <style>
-        /* Override del fondo principal */
         .main-content {
             background: #2c3e50 !important;
             color: white;
-        }
-
-        /* Container principal */
-        .list-container {
-            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            margin: 20px auto;
-            animation: slideIn 0.5s ease-out;
         }
 
         @keyframes slideIn {
@@ -134,231 +125,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             }
         }
 
-        /* Título */
-        .list-title {
-            color: #f1c40f;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        /* Container de filtros */
-        .filter-container {
-            background: rgba(0,0,0,0.2);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(241, 196, 15, 0.2);
-        }
-
-        .filter-container label {
-            color: #f1c40f !important;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        /* Buscador mejorado */
-        .search-controls {
-            display: flex;
-            gap: 15px;
-            align-items: end;
-            flex-wrap: wrap;
-        }
-
-        .search-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .search-field label {
-            color: #f1c40f !important;
-            font-weight: 600;
-            margin-bottom: 8px !important;
-            font-size: 0.9rem;
-            text-align: left;
-        }
-
-        .search-input {
-            background: rgba(236, 240, 241, 0.1) !important;
-            border: 2px solid rgba(241, 196, 15, 0.3) !important;
-            color: white !important;
-            padding: 10px !important;
-            border-radius: 8px !important;
-            font-size: 1rem !important;
-            transition: all 0.3s ease;
-            min-width: 150px;
-        }
-
-        .search-input:focus {
-            background: rgba(236, 240, 241, 0.15) !important;
-            border-color: #f1c40f !important;
-            box-shadow: 0 0 0 0.125em rgba(241, 196, 15, 0.25) !important;
-            outline: none;
-        }
-
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.6) !important;
-        }
-
-        /* Corregir dropdown en modo oscuro */
-        .select select {
-            background: rgba(236, 240, 241, 0.1) !important;
-            border: 2px solid rgba(241, 196, 15, 0.3) !important;
-            color: white !important;
-            font-size: 1rem;
-            padding: 10px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23f1c40f' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
-            background-position: right 10px center !important;
-            background-repeat: no-repeat !important;
-            background-size: 16px !important;
-            padding-right: 40px !important;
-        }
-
-        .select select option {
-            background: #2c3e50 !important;
-            color: white !important;
-            padding: 8px !important;
-        }
-
-        /* Botón de búsqueda */
-        .button {
-            background: linear-gradient(45deg, #f39c12, #f1c40f) !important;
-            border: none !important;
-            color: #2c3e50 !important;
-            font-weight: bold !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-            padding: 10px 20px !important;
-            font-size: 1rem !important;
-        }
-
-        .button:hover {
-            background: linear-gradient(45deg, #e67e22, #f39c12) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4) !important;
-            color: #2c3e50 !important;
-        }
-
-        /* Tabla personalizada */
-        .custom-table {
-            background: rgba(0,0,0,0.3) !important;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
-
-        .custom-table thead {
-            background: linear-gradient(45deg, #f39c12, #f1c40f) !important;
-        }
-
-        .custom-table thead th {
-            color: #2c3e50 !important;
-            font-weight: bold !important;
-            border: none !important;
-            padding: 15px 8px !important;
-            text-align: center;
-            font-size: 0.85rem;
-        }
-
-        .custom-table tbody tr {
-            background: rgba(255,255,255,0.05) !important;
-            transition: all 0.3s ease;
-        }
-
-        .custom-table tbody tr:nth-child(even) {
-            background: rgba(255,255,255,0.08) !important;
-        }
-
-        .custom-table tbody tr:hover {
-            background: rgba(241, 196, 15, 0.15) !important;
-            transform: scale(1.01);
-            box-shadow: 0 3px 10px rgba(241, 196, 15, 0.2);
-        }
-
-        .custom-table tbody td {
-            color: #ecf0f1 !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            padding: 12px 6px !important;
-            text-align: center;
-            font-size: 0.85rem;
-            word-wrap: break-word;
-        }
-
-        /* Enlaces de acción */
-        .edit-link {
-            background: linear-gradient(45deg, #3498db, #2980b9) !important;
-            color: white !important;
-            font-weight: bold;
-            text-decoration: none !important;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            font-size: 0.7rem;
-            margin-right: 3px;
-        }
-
-        .edit-link:hover {
-            background: linear-gradient(45deg, #2980b9, #3498db) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(52, 152, 219, 0.4);
-            color: white !important;
-        }
-
-        .delete-link {
-            background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
-            color: white !important;
-            font-weight: bold;
-            text-decoration: none !important;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            font-size: 0.7rem;
-        }
-
-        .delete-link:hover {
-            background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
-            color: white !important;
-        }
-
-        /* Estado badges */
-        .status-active {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .status-inactive {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Stock badges */
+        /* Stock badges específicos de productos */
         .stock-normal {
             color: #27ae60;
             font-weight: bold;
@@ -380,16 +147,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             border-radius: 8px;
         }
 
-        /* Mensaje sin resultados */
-        .no-results {
-            text-align: center;
-            color: #f1c40f !important;
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 30px;
-        }
-
-        /* Fila expandible para proveedores */
+        /* Estilos para filas expandibles de proveedores */
         .expandable-row {
             display: none;
             background: rgba(241, 196, 15, 0.05) !important;
@@ -447,7 +205,6 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             font-size: 0.8rem;
         }
 
-        /* Botón de expandir/contraer */
         .expand-btn {
             background: transparent !important;
             border: none !important;
@@ -476,37 +233,23 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             transform: rotate(180deg);
         }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .custom-table {
-                font-size: 0.75rem;
-            }
-            
-            .custom-table th,
-            .custom-table td {
-                padding: 6px 3px !important;
-            }
+        .delete-link {
+            background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+            color: white !important;
+            font-weight: bold;
+            text-decoration: none !important;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-size: 0.7rem;
         }
 
-        @media (max-width: 768px) {
-            .list-container {
-                margin: 10px;
-                padding: 20px;
-            }
-            
-            .list-title {
-                font-size: 2rem;
-            }
-            
-            .filter-container {
-                padding: 15px;
-            }
-            
-            .custom-table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
+        .delete-link:hover {
+            background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
+            color: white !important;
         }
     </style>
 </head>
@@ -530,23 +273,20 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                         ? '<span class="status-active">ACTIVO</span>' 
                         : '<span class="status-inactive">INACTIVO</span>';
                     
-                    // Determinar color del stock
                     let stockClass = 'stock-normal';
                     if (producto.stock_actual <= producto.stock_minimo) {
                         stockClass = producto.stock_actual == 0 ? 'stock-critico' : 'stock-bajo';
                     }
                     
-                    // Crear HTML para los proveedores
                     let proveedoresHTML = '';
                     if (producto.proveedores && producto.proveedores.length > 0) {
                         proveedoresHTML = producto.proveedores.map(proveedor => 
-                            `<span class="provider-tag">${proveedor.nombre_proveedor} ($${parseFloat(proveedor.precio_compra).toFixed(2)})</span>`
+                            `<span class="provider-tag">${proveedor.nombre_proveedor} ($${parseFloat(proveedor.precio_compra || 0).toFixed(2)})</span>`
                         ).join('');
                     } else {
                         proveedoresHTML = '<span class="no-providers">Sin proveedores asociados</span>';
                     }
                     
-                    // Fila principal del producto
                     productosHTML += `
                         <tr>
                             <td><strong>${producto.id}</strong></td>
@@ -575,7 +315,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                             <td colspan="8">
                                 <div class="providers-container">
                                     <div class="providers-title">
-                                        🏪 Proveedores asociados (${producto.proveedores ? producto.proveedores.length : 0}):
+                                        Proveedores asociados (${producto.proveedores ? producto.proveedores.length : 0}):
                                     </div>
                                     <div class="provider-item-list">
                                         ${proveedoresHTML}
@@ -589,7 +329,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                 productosHTML = `
                     <tr>
                         <td colspan="8" class="no-results">
-                            📦 No se encontraron productos con los criterios seleccionados
+                            No se encontraron productos con los criterios seleccionados
                         </td>
                     </tr>
                 `;
@@ -597,11 +337,11 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
 
             const contentHTML = `
                 <div class='list-container'>
-                    <h1 class='list-title'>📦 Listado de Productos</h1>
+                    <h1 class='list-title'>Listado de Productos</h1>
                     
                     <div class='filter-container'>
                         <form method='GET' action=''>
-                            <label class='label'>🔍 Buscar Productos</label>
+                            <label class='label'>Buscar Productos</label>
                             <div class='search-controls'>
                                 <div class='search-field' style='min-width: 180px;'>
                                     <label>Buscar por:</label>
@@ -649,7 +389,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                                 
                                 <div class='search-field' style='min-width: auto;'>
                                     <button type='submit' class='button' style='margin-top: 22px; padding: 12px 20px; height: 44px;'>
-                                        🔎 Buscar
+                                        Buscar
                                     </button>
                                 </div>
                             </div>
@@ -680,19 +420,16 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             
             mainContent.innerHTML = contentHTML;
             
-            // Función para expandir/contraer proveedores
             window.toggleProviders = function(index) {
                 const expandableRow = document.getElementById(`providers-${index}`);
                 const icon = document.getElementById(`icon-${index}`);
                 const text = document.getElementById(`text-${index}`);
                 
                 if (expandableRow.classList.contains('show')) {
-                    // Contraer
                     expandableRow.classList.remove('show');
                     icon.classList.remove('rotated');
                     text.textContent = 'Ver';
                 } else {
-                    // Expandir
                     expandableRow.classList.add('show');
                     icon.classList.add('rotated');
                     text.textContent = 'Ocultar';
