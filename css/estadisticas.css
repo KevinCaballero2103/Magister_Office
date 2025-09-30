@@ -1,0 +1,217 @@
+/* ==========================================
+   ESTILOS PARA ESTADÍSTICAS Y DASHBOARDS
+   (Usado en gestionar_stock, reportes, index)
+   ========================================== */
+
+/* Container de estadísticas */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+/* Tarjeta individual de estadística */
+.stat-card {
+    background: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    border: 2px solid rgba(241, 196, 15, 0.3);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(241, 196, 15, 0.3);
+}
+
+/* Número de la estadística */
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* Etiqueta/título de la estadística */
+.stat-label {
+    color: #ecf0f1;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* Colores según tipo de estadística */
+.stat-critico .stat-number { 
+    color: #e74c3c; 
+}
+
+.stat-bajo .stat-number { 
+    color: #f39c12; 
+}
+
+.stat-normal .stat-number { 
+    color: #27ae60; 
+}
+
+.stat-total .stat-number { 
+    color: #3498db; 
+}
+
+.stat-warning .stat-number {
+    color: #e67e22;
+}
+
+.stat-success .stat-number {
+    color: #2ecc71;
+}
+
+.stat-info .stat-number {
+    color: #3498db;
+}
+
+.stat-primary .stat-number {
+    color: #f1c40f;
+}
+
+/* Badges de nivel de stock */
+.stock-critico {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.stock-bajo {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.stock-normal {
+    background: linear-gradient(45deg, #27ae60, #2ecc71);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Botones específicos de movimientos de stock */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-entrada {
+    background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+    color: white !important;
+    font-weight: bold;
+    text-decoration: none !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    font-size: 0.75rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-entrada:hover {
+    background: linear-gradient(45deg, #2ecc71, #27ae60) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+    color: white !important;
+}
+
+.btn-salida {
+    background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
+    color: white !important;
+    font-weight: bold;
+    text-decoration: none !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    font-size: 0.75rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-salida:hover {
+    background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+    color: white !important;
+}
+
+.btn-historial {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad) !important;
+    color: white !important;
+    font-weight: bold;
+    text-decoration: none !important;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    font-size: 0.75rem;
+}
+
+.btn-historial:hover {
+    background: linear-gradient(45deg, #8e44ad, #9b59b6) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+    color: white !important;
+}
+
+/* Resaltar filas en tablas según nivel crítico */
+.row-critico {
+    background: rgba(231, 76, 60, 0.1) !important;
+}
+
+.row-bajo {
+    background: rgba(243, 156, 18, 0.1) !important;
+}
+
+.row-warning {
+    background: rgba(230, 126, 34, 0.1) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-container {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+}
