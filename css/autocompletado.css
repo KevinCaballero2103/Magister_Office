@@ -1,0 +1,83 @@
+/* ==========================================
+   ESTILOS PARA AUTOCOMPLETADO DE CATEGORÍAS
+   (Usado en servicios)
+   ========================================== */
+
+/* Container del autocompletado */
+.autocomplete-container {
+    position: relative;
+}
+
+/* Lista de sugerencias */
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(44, 62, 80, 0.98);
+    border: 2px solid rgba(241, 196, 15, 0.5);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.autocomplete-suggestions.active {
+    display: block;
+}
+
+/* Item individual de sugerencia */
+.suggestion-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    color: #ecf0f1;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(241, 196, 15, 0.2);
+}
+
+.suggestion-item.highlighted {
+    background: rgba(241, 196, 15, 0.3);
+}
+
+/* Sugerencia de nueva categoría */
+.suggestion-new {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+/* Icono de sugerencia */
+.suggestion-icon {
+    margin-right: 8px;
+}
+
+/* Scrollbar personalizada para sugerencias */
+.autocomplete-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+
+.autocomplete-suggestions::-webkit-scrollbar-thumb {
+    background: rgba(241, 196, 15, 0.5);
+    border-radius: 3px;
+}
+
+/* Texto de ayuda */
+.help {
+    color: rgba(255,255,255,0.7);
+    margin-top: 8px;
+    font-size: 0.9rem;
+}

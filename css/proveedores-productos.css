@@ -1,0 +1,83 @@
+/* ==========================================
+   ESTILOS ESPECÍFICOS PARA SELECTOR DE PRODUCTOS
+   (Usado en proveedores)
+   ========================================== */
+
+/* Selector de productos múltiples */
+.products-selector {
+    background: rgba(0,0,0,0.2);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    border: 1px solid rgba(241, 196, 15, 0.2);
+}
+
+.products-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 2px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.product-item:hover {
+    background: rgba(241, 196, 15, 0.1);
+}
+
+.product-item.selected {
+    background: rgba(241, 196, 15, 0.2);
+    border: 1px solid #f1c40f;
+}
+
+.product-checkbox {
+    margin-right: 10px;
+    accent-color: #f1c40f;
+}
+
+.selected-products {
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(39, 174, 96, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(39, 174, 96, 0.3);
+}
+
+.selected-product-tag {
+    display: inline-block;
+    background: rgba(39, 174, 96, 0.8);
+    color: white;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.selected-product-tag:hover {
+    background: rgba(231, 76, 60, 0.8);
+}
+
+/* Scrollbar personalizada */
+.products-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.products-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+
+.products-list::-webkit-scrollbar-thumb {
+    background: rgba(241, 196, 15, 0.5);
+    border-radius: 3px;
+}

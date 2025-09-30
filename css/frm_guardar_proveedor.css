@@ -1,0 +1,13 @@
+#nombre, #color, #precio{
+    width: 200px;
+}
+
+
+#fecha_compra{
+    width: 30%;
+}
+
+#descuento, #n_petalos{
+    width: 80px;
+}
+
