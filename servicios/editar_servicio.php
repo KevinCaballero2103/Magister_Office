@@ -211,7 +211,7 @@ try {
                         </a>
                         
                         <a href='./frm_guardar_servicio.php' class='secondary-button'>
-                            ➕ Registrar Nuevo Servicio
+                            ➕ Registrar Nuevo Servicio/s
                         </a>
                     </div>
                 </div>
