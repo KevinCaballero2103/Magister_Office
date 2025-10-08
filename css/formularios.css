@@ -131,3 +131,93 @@
         font-size: 2rem;
     }
 }
+
+
+/* ==========================================
+   FIX: SELECT DROPDOWN - OPCIONES LEGIBLES
+   Solución para fondo blanco en select
+   ========================================== */
+
+/* El select en sí mismo */
+.select select {
+    background: rgba(236, 240, 241, 0.1) !important;
+    border: 2px solid rgba(241, 196, 15, 0.3) !important;
+    color: white !important;
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    
+    /* CRÍTICO: Fuerza modo oscuro en el dropdown nativo del navegador */
+    color-scheme: dark;
+}
+
+/* Opciones del dropdown - SOLUCIÓN PRINCIPAL */
+.select select option {
+    background-color: #2c3e50 !important;
+    color: #ecf0f1 !important;
+    padding: 8px 12px !important;
+    font-size: 1rem !important;
+}
+
+/* Opción actualmente seleccionada (con check visual) */
+.select select option:checked,
+.select select option[selected] {
+    background: linear-gradient(45deg, #f39c12, #f1c40f) !important;
+    background-color: #f1c40f !important;
+    color: #2c3e50 !important;
+    font-weight: bold !important;
+}
+
+/* Hover sobre opciones (solo funciona en algunos navegadores) */
+.select select option:hover {
+    background-color: #34495e !important;
+    color: white !important;
+}
+
+/* Focus en el select */
+.select select:focus {
+    background: rgba(236, 240, 241, 0.15) !important;
+    border-color: #f1c40f !important;
+    box-shadow: 0 0 0 0.125em rgba(241, 196, 15, 0.25) !important;
+    outline: none;
+}
+
+/* Flecha del select (estilo Bulma) */
+.select:not(.is-multiple):not(.is-loading)::after {
+    border-color: #f1c40f !important;
+    border-width: 2px !important;
+}
+
+/* Select disabled (deshabilitado) */
+.select select:disabled {
+    background: rgba(128, 128, 128, 0.3) !important;
+    cursor: not-allowed;
+    opacity: 0.5;
+    color: rgba(255,255,255,0.5) !important;
+}
+
+.select select:disabled option {
+    color: rgba(255,255,255,0.5) !important;
+}
+
+/* Compatibilidad con navegadores WebKit (Chrome, Edge, Safari) */
+@supports (-webkit-appearance: none) {
+    .select select {
+        -webkit-appearance: none;
+        appearance: none;
+    }
+}
+
+/* Compatibilidad específica para Firefox */
+@-moz-document url-prefix() {
+    .select select option {
+        background-color: #2c3e50 !important;
+        color: white !important;
+    }
+    
+    .select select option:checked {
+        background-color: #f1c40f !important;
+        color: #2c3e50 !important;
+    }
+}
