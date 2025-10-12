@@ -13,6 +13,8 @@ function getCurrentModule($currentDir, $currentPage) {
     if ($currentDir === 'clientes') return 'Clientes';
     if ($currentDir === 'productos') return 'Productos';
     if ($currentDir === 'servicios') return 'Servicios';
+    if ($currentDir === 'compras') return 'Compras';
+    if ($currentDir === 'ventas') return 'Ventas';
     if ($currentDir === 'caja') return 'Caja';
     if ($currentDir === 'facturar') return 'Facturar';
     if ($currentDir === 'auditoria') return 'Auditoría';
@@ -108,7 +110,6 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     <div class="submenu">
                         <a href="<?php echo $prefix; ?>productos/frm_guardar_producto.php" class="submenu-item">Registrar</a>
                         <a href="<?php echo $prefix; ?>productos/listado_producto.php" class="submenu-item">Listar</a>
-                        <a href="<?php echo $prefix; ?>productos/gestionar_stock.php" class="submenu-item">Gestionar Stock</a>
                     </div>
                 </div>
 
@@ -130,8 +131,42 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
+                <!-- COMPRAS (NUEVO) -->
+                <div class="nav-item">
+                    <div class="nav-link" onclick="toggleSubmenu(this)">
+                        <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                        <span class="nav-text">Compras</span>
+                        <svg class="nav-arrow" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 12l-4-4h8l-4 4z"/>
+                        </svg>
+                    </div>
+                    <div class="submenu">
+                        <a href="<?php echo $prefix; ?>compras/frm_registrar_compra.php" class="submenu-item">Registrar Compra</a>
+                        <a href="<?php echo $prefix; ?>compras/listado_compras.php" class="submenu-item">Historial</a>
+                    </div>
+                </div>
 
-                <!-- Caja -->
+                <!-- VENTAS (NUEVO) -->
+                <div class="nav-item">
+                    <div class="nav-link" onclick="toggleSubmenu(this)">
+                        <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="nav-text">Ventas</span>
+                        <svg class="nav-arrow" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 12l-4-4h8l-4 4z"/>
+                        </svg>
+                    </div>
+                    <div class="submenu">
+                        <a href="<?php echo $prefix; ?>ventas/frm_registrar_venta.php" class="submenu-item">Registrar Venta</a>
+                        <a href="<?php echo $prefix; ?>ventas/listado_ventas.php" class="submenu-item">Historial</a>
+                    </div>
+                </div>
+
+                <!-- Caja (ACTUALIZADO) -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
                         <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -143,9 +178,9 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                         </svg>
                     </div>
                     <div class="submenu">
-                        <a href="<?php echo $prefix; ?>caja/ingresos.php" class="submenu-item">Ingresos</a>
-                        <a href="<?php echo $prefix; ?>caja/egresos.php" class="submenu-item">Egresos</a>
-                        <a href="<?php echo $prefix; ?>caja/balance.php" class="submenu-item">Balance</a>
+                        <a href="<?php echo $prefix; ?>caja/balance.php" class="submenu-item">Balance General</a>
+                        <a href="<?php echo $prefix; ?>caja/registrar_movimiento.php" class="submenu-item">Registrar Movimiento</a>
+                        <a href="<?php echo $prefix; ?>caja/historial_movimientos.php" class="submenu-item">Historial</a>
                     </div>
                 </div>
 
@@ -180,6 +215,7 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                     <div class="submenu">
                         <a href="<?php echo $prefix; ?>auditoria/log_actividades.php" class="submenu-item">Log de Actividades</a>
+                        <a href="<?php echo $prefix; ?>auditoria/historial_stock.php" class="submenu-item">Historial de Stock</a>
                     </div>
                 </div>
             </div>

@@ -1,13 +1,3 @@
-<?php
-// Obtener categorías existentes para el autocompletado
-include_once "../db.php";
-
-$sentenciaCategorias = $conexion->prepare("SELECT DISTINCT categoria_servicio FROM servicios WHERE categoria_servicio IS NOT NULL AND categoria_servicio != '' ORDER BY categoria_servicio ASC");
-$sentenciaCategorias->execute();
-$categorias = $sentenciaCategorias->fetchAll(PDO::FETCH_COLUMN);
-$categoriasJSON = json_encode($categorias);
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -18,7 +8,6 @@ $categoriasJSON = json_encode($categorias);
     <link href="../css/formularios.css" rel="stylesheet">
     <link href="../css/autocompletado.css" rel="stylesheet">
     
-    <!-- Solo estilos específicos -->
     <style>
         .main-content {
             background: #2c3e50 !important;
@@ -35,11 +24,6 @@ $categoriasJSON = json_encode($categorias);
                 transform: translateY(0);
             }
         }
-
-        /* Ancho específico para formularios de servicios */
-        .form-container {
-            max-width: 800px;
-        }
     </style>
 </head>
 <body>
@@ -48,93 +32,17 @@ $categoriasJSON = json_encode($categorias);
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
-            const categorias = <?php echo $categoriasJSON; ?>;
-            
-            let selectedIndex = -1;
-            let filteredSuggestions = [];
-
-            function filterCategories(searchTerm) {
-                if (!searchTerm) return [];
-                const term = searchTerm.toLowerCase();
-                return categorias.filter(cat => cat.toLowerCase().includes(term));
-            }
-
-            function showSuggestions(input, suggestions) {
-                const container = input.parentElement;
-                let suggestionsDiv = container.querySelector('.autocomplete-suggestions');
-                
-                if (!suggestionsDiv) {
-                    suggestionsDiv = document.createElement('div');
-                    suggestionsDiv.className = 'autocomplete-suggestions';
-                    container.appendChild(suggestionsDiv);
-                }
-
-                if (suggestions.length === 0 && input.value.trim() !== '') {
-                    suggestionsDiv.innerHTML = `
-                        <div class="suggestion-item suggestion-new" data-value="${input.value}">
-                            <span class="suggestion-icon">✨</span>
-                            Crear nueva categoría: "${input.value}"
-                        </div>
-                    `;
-                    suggestionsDiv.classList.add('active');
-                } else if (suggestions.length > 0) {
-                    let html = '';
-                    suggestions.forEach((cat, index) => {
-                        html += `
-                            <div class="suggestion-item" data-value="${cat}" data-index="${index}">
-                                <span class="suggestion-icon">📁</span>
-                                ${cat}
-                            </div>
-                        `;
-                    });
-                    suggestionsDiv.innerHTML = html;
-                    suggestionsDiv.classList.add('active');
-                } else {
-                    suggestionsDiv.classList.remove('active');
-                }
-
-                const items = suggestionsDiv.querySelectorAll('.suggestion-item');
-                items.forEach(item => {
-                    item.addEventListener('click', function() {
-                        input.value = this.getAttribute('data-value');
-                        suggestionsDiv.classList.remove('active');
-                        selectedIndex = -1;
-                    });
-                });
-            }
-
-            function hideSuggestions(input) {
-                const container = input.parentElement;
-                const suggestionsDiv = container.querySelector('.autocomplete-suggestions');
-                if (suggestionsDiv) {
-                    setTimeout(() => suggestionsDiv.classList.remove('active'), 200);
-                }
-            }
-
-            function highlightSuggestion(suggestionsDiv, index) {
-                const items = suggestionsDiv.querySelectorAll('.suggestion-item');
-                items.forEach((item, i) => {
-                    if (i === index) {
-                        item.classList.add('highlighted');
-                        item.scrollIntoView({ block: 'nearest' });
-                    } else {
-                        item.classList.remove('highlighted');
-                    }
-                });
-            }
-
             const formHTML = `
                 <div class="form-container">
-                    <h1 class="form-title">🔧 Registrar Servicio</h1>
+                    <h1 class="form-title">Registrar Servicio</h1>
                     
-                    <form action="./guardar_servicio.php" method="post" onsubmit="return validateForm()">
+                    <form action="./guardar_servicio.php" method="post">
                         <div class="columns">
                             <div class="column is-8">
                                 <div class="field">
                                     <label class="label">Nombre del Servicio</label>
                                     <div class="control">
-                                        <input class="input" type="text" name="nombre_servicio" id="nombre_servicio" 
-                                               placeholder="Ej: Reparación de impresora, Mantenimiento preventivo, etc." required>
+                                        <input class="input" type="text" name="nombre_servicio" id="nombre_servicio" placeholder="Ingresa el nombre del servicio" required>
                                     </div>
                                 </div>
                             </div>
@@ -145,7 +53,7 @@ $categoriasJSON = json_encode($categorias);
                                     <div class="control">
                                         <div class="select is-fullwidth">
                                             <select name="estado_servicio" id="estado_servicio">
-                                                <option value="1">Activo</option>
+                                                <option value="1" selected>Activo</option>
                                                 <option value="0">Inactivo</option>
                                             </select>
                                         </div>
@@ -154,16 +62,18 @@ $categoriasJSON = json_encode($categorias);
                             </div>
                         </div>
 
-                        <div class="field">
-                            <label class="label">Categoría del Servicio</label>
-                            <div class="control autocomplete-container">
-                                <input class="input" type="text" name="categoria_servicio" id="categoria_servicio" 
-                                       placeholder="Escribe para buscar o crear una categoría (Ej: Impresión, Reparación, Consultoría...)" 
-                                       autocomplete="off" required>
+                        <div class="columns">
+                            <div class="column is-12">
+                                <div class="field">
+                                    <label class="label">Categoría</label>
+                                    <div class="control autocomplete-container">
+                                        <input class="input" type="text" id="categoria_input" placeholder="Buscar o crear categoría" autocomplete="off">
+                                        <input type="hidden" name="categoria_servicio" id="categoria_servicio" required>
+                                        <div class="autocomplete-suggestions" id="categoria_suggestions"></div>
+                                    </div>
+                                    <p class="help">Escribe para buscar una categoría existente o crear una nueva</p>
+                                </div>
                             </div>
-                            <p class="help">
-                                💡 Escribe el nombre de la categoría. Si ya existe, aparecerá en las sugerencias. Si no existe, se creará automáticamente.
-                            </p>
                         </div>
 
                         <div class="field is-grouped" style="justify-content: center; margin-top: 30px;">
@@ -173,7 +83,7 @@ $categoriasJSON = json_encode($categorias);
                                 </button>
                             </div>
                             <div class="control">
-                                <button type="reset" class="button" onclick="resetForm()">
+                                <button type="reset" class="button">
                                     🔄 Limpiar Formulario
                                 </button>
                             </div>
@@ -184,81 +94,205 @@ $categoriasJSON = json_encode($categorias);
             
             mainContent.innerHTML = formHTML;
 
-            const categoriaInput = document.getElementById('categoria_servicio');
-            
-            categoriaInput.addEventListener('input', function() {
-                const value = this.value.trim();
-                filteredSuggestions = filterCategories(value);
-                showSuggestions(this, filteredSuggestions);
-                selectedIndex = -1;
-            });
+            // Inicializar el autocompletado
+            initAutocompletado();
+        });
 
-            categoriaInput.addEventListener('focus', function() {
-                if (this.value.trim()) {
-                    filteredSuggestions = filterCategories(this.value);
-                    showSuggestions(this, filteredSuggestions);
+        function initAutocompletado() {
+            // Categorías predefinidas (pueden cargarse desde PHP/base de datos)
+            let categorias = [
+                'Consultoría',
+                'Desarrollo Web',
+                'Diseño Gráfico',
+                'Marketing Digital',
+                'Mantenimiento',
+                'Soporte Técnico',
+                'Capacitación',
+                'Instalación',
+                'Reparación',
+                'Limpieza',
+                'Asesoría'
+            ];
+
+            const inputVisible = document.getElementById('categoria_input');
+            const inputHidden = document.getElementById('categoria_servicio');
+            const suggestions = document.getElementById('categoria_suggestions');
+
+            // Mostrar sugerencias al hacer focus
+            inputVisible.addEventListener('focus', function() {
+                if (this.value.trim() === '') {
+                    mostrarTodasCategorias();
+                } else {
+                    filtrarCategorias(this.value);
                 }
             });
 
-            categoriaInput.addEventListener('blur', function() {
-                hideSuggestions(this);
+            // Filtrar mientras escribe
+            inputVisible.addEventListener('input', function() {
+                const valor = this.value.trim();
+                
+                if (valor === '') {
+                    mostrarTodasCategorias();
+                } else {
+                    filtrarCategorias(valor);
+                }
             });
 
-            categoriaInput.addEventListener('keydown', function(e) {
-                const container = this.parentElement;
-                const suggestionsDiv = container.querySelector('.autocomplete-suggestions');
-                
-                if (!suggestionsDiv || !suggestionsDiv.classList.contains('active')) return;
+            // Cerrar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.autocomplete-container')) {
+                    suggestions.classList.remove('active');
+                }
+            });
 
-                const items = suggestionsDiv.querySelectorAll('.suggestion-item');
+            // Función para mostrar todas las categorías
+            function mostrarTodasCategorias() {
+                suggestions.innerHTML = '';
+                
+                if (categorias.length === 0) {
+                    suggestions.innerHTML = '<div class="suggestion-item" style="cursor: default; opacity: 0.7;">No hay categorías disponibles</div>';
+                } else {
+                    categorias.forEach(cat => {
+                        const item = crearItemSugerencia(cat, false);
+                        suggestions.appendChild(item);
+                    });
+                }
+                
+                suggestions.classList.add('active');
+            }
+
+            // Función para filtrar categorías
+            function filtrarCategorias(termino) {
+                suggestions.innerHTML = '';
+                
+                const terminoLower = termino.toLowerCase();
+                const coincidencias = categorias.filter(cat => 
+                    cat.toLowerCase().includes(terminoLower)
+                );
+
+                // Mostrar coincidencias
+                if (coincidencias.length > 0) {
+                    coincidencias.forEach(cat => {
+                        const item = crearItemSugerencia(cat, false);
+                        suggestions.appendChild(item);
+                    });
+                }
+
+                // Verificar si la categoría ya existe exactamente
+                const existeExacta = categorias.some(cat => 
+                    cat.toLowerCase() === terminoLower
+                );
+
+                // Mostrar opción para crear nueva categoría
+                if (!existeExacta && termino.trim() !== '') {
+                    const itemNuevo = crearItemSugerencia(termino, true);
+                    suggestions.appendChild(itemNuevo);
+                }
+
+                // Mensaje si no hay resultados
+                if (suggestions.children.length === 0) {
+                    suggestions.innerHTML = '<div class="suggestion-item" style="cursor: default; opacity: 0.7;">No se encontraron categorías</div>';
+                }
+
+                suggestions.classList.add('active');
+            }
+
+            // Función para crear un item de sugerencia
+            function crearItemSugerencia(texto, esNuevo) {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                
+                if (esNuevo) {
+                    item.classList.add('suggestion-new');
+                    item.innerHTML = `<span class="suggestion-icon">✨</span> Crear: "<strong>${texto}</strong>"`;
+                    item.addEventListener('click', function() {
+                        crearYSeleccionarCategoria(texto);
+                    });
+                } else {
+                    item.innerHTML = `<span class="suggestion-icon">📁</span> ${texto}`;
+                    item.addEventListener('click', function() {
+                        seleccionarCategoria(texto);
+                    });
+                }
+
+                return item;
+            }
+
+            // Función para seleccionar una categoría existente
+            function seleccionarCategoria(categoria) {
+                inputVisible.value = categoria;
+                inputHidden.value = categoria;
+                suggestions.classList.remove('active');
+            }
+
+            // Función para crear y seleccionar una nueva categoría
+            function crearYSeleccionarCategoria(nuevaCategoria) {
+                // Capitalizar primera letra
+                const categoriaCapitalizada = nuevaCategoria.charAt(0).toUpperCase() + nuevaCategoria.slice(1);
+                
+                // Agregar a la lista si no existe
+                if (!categorias.includes(categoriaCapitalizada)) {
+                    categorias.push(categoriaCapitalizada);
+                    categorias.sort();
+                }
+                
+                seleccionarCategoria(categoriaCapitalizada);
+            }
+
+            // Validación antes de enviar
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                if (inputHidden.value === '') {
+                    e.preventDefault();
+                    alert('Por favor selecciona o crea una categoría');
+                    inputVisible.focus();
+                }
+            });
+
+            // Limpiar al resetear el formulario
+            form.addEventListener('reset', function() {
+                setTimeout(() => {
+                    inputVisible.value = '';
+                    inputHidden.value = '';
+                    suggestions.classList.remove('active');
+                }, 0);
+            });
+
+            // Navegar con teclado (opcional)
+            let indiceSeleccionado = -1;
+            
+            inputVisible.addEventListener('keydown', function(e) {
+                const items = suggestions.querySelectorAll('.suggestion-item');
                 
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
-                    highlightSuggestion(suggestionsDiv, selectedIndex);
+                    indiceSeleccionado = Math.min(indiceSeleccionado + 1, items.length - 1);
+                    actualizarSeleccion(items);
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
-                    selectedIndex = Math.max(selectedIndex - 1, 0);
-                    highlightSuggestion(suggestionsDiv, selectedIndex);
-                } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                    indiceSeleccionado = Math.max(indiceSeleccionado - 1, 0);
+                    actualizarSeleccion(items);
+                } else if (e.key === 'Enter' && indiceSeleccionado >= 0) {
                     e.preventDefault();
-                    const selectedItem = items[selectedIndex];
-                    this.value = selectedItem.getAttribute('data-value');
-                    suggestionsDiv.classList.remove('active');
-                    selectedIndex = -1;
+                    items[indiceSeleccionado].click();
+                    indiceSeleccionado = -1;
                 } else if (e.key === 'Escape') {
-                    suggestionsDiv.classList.remove('active');
-                    selectedIndex = -1;
+                    suggestions.classList.remove('active');
+                    indiceSeleccionado = -1;
                 }
             });
 
-            window.validateForm = function() {
-                const nombre = document.getElementById('nombre_servicio').value.trim();
-                const categoria = document.getElementById('categoria_servicio').value.trim();
-                
-                if (!nombre) {
-                    alert('Por favor, ingresa el nombre del servicio');
-                    return false;
-                }
-                
-                if (!categoria) {
-                    alert('Por favor, ingresa o selecciona una categoría');
-                    return false;
-                }
-                
-                return true;
-            };
-
-            window.resetForm = function() {
-                selectedIndex = -1;
-                filteredSuggestions = [];
-                const suggestionsDiv = document.querySelector('.autocomplete-suggestions');
-                if (suggestionsDiv) {
-                    suggestionsDiv.classList.remove('active');
-                }
-                return true;
-            };
-        });
+            function actualizarSeleccion(items) {
+                items.forEach((item, index) => {
+                    if (index === indiceSeleccionado) {
+                        item.classList.add('highlighted');
+                        item.scrollIntoView({ block: 'nearest' });
+                    } else {
+                        item.classList.remove('highlighted');
+                    }
+                });
+            }
+        }
     </script>
 </body>
 </html>
