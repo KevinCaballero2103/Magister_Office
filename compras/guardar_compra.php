@@ -7,7 +7,6 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include_once "../db.php";
 
-        // seguridad mínima: asegurarse que $conexion exista
         if (!isset($conexion) || !$conexion) {
             throw new Exception("No se pudo conectar a la base de datos.");
         }
@@ -15,7 +14,7 @@ try {
         // Iniciar transacción
         $conexion->beginTransaction();
 
-        // Datos de la compra (compatibilidad PHP < 7.0: usar isset en lugar de ??)
+        // Datos de la compra
         $id_proveedor = isset($_POST['id_proveedor']) ? $_POST['id_proveedor'] : null;
         $numero_compra = isset($_POST['numero_compra']) ? trim($_POST['numero_compra']) : null;
         $numero_compra = $numero_compra === "" ? null : $numero_compra;
@@ -23,6 +22,19 @@ try {
         $total_compra = isset($_POST['total_compra']) ? floatval($_POST['total_compra']) : 0;
         $observaciones = isset($_POST['observaciones']) ? trim($_POST['observaciones']) : null;
         $productos = isset($_POST['productos']) ? $_POST['productos'] : array();
+        
+        // NUEVO: Datos de forma de pago
+        $forma_pago = isset($_POST['forma_pago']) ? $_POST['forma_pago'] : 'CONTADO';
+        $cuotas = null;
+        $monto_cuota = null;
+        $fecha_vencimiento = null;
+        
+        // Solo asignar valores si es CREDITO y los campos tienen valor
+        if ($forma_pago === 'CREDITO') {
+            $cuotas = (isset($_POST['cuotas']) && $_POST['cuotas'] !== '') ? intval($_POST['cuotas']) : null;
+            $monto_cuota = (isset($_POST['monto_cuota']) && $_POST['monto_cuota'] !== '') ? floatval($_POST['monto_cuota']) : null;
+            $fecha_vencimiento = (isset($_POST['fecha_vencimiento']) && $_POST['fecha_vencimiento'] !== '') ? $_POST['fecha_vencimiento'] : null;
+        }
 
         // Validaciones
         if (empty($id_proveedor)) {
@@ -35,6 +47,19 @@ try {
 
         if (empty($fecha_compra)) {
             throw new Exception("Debe ingresar la fecha de compra");
+        }
+        
+        // Validar datos de crédito si aplica
+        if ($forma_pago === 'CREDITO') {
+            if (empty($cuotas) || $cuotas < 1) {
+                throw new Exception("Debe ingresar el número de cuotas para compra a crédito");
+            }
+            if (empty($monto_cuota) || $monto_cuota <= 0) {
+                throw new Exception("El monto de cuota debe ser mayor a 0");
+            }
+            if (empty($fecha_vencimiento)) {
+                throw new Exception("Debe ingresar la fecha de vencimiento de la primera cuota");
+            }
         }
 
         // 1. Insertar la compra (cabecera)
@@ -57,7 +82,30 @@ try {
         // Obtener ID de la compra insertada
         $id_compra = $conexion->lastInsertId();
 
-        // 2. Insertar detalle de compra y actualizar stock
+
+        // 2. NUEVO: Insertar forma de pago
+        $sentenciaPago = $conexion->prepare(
+            "INSERT INTO pagos_compra (id_compra, forma_pago, cuotas, monto_cuota, fecha_vencimiento) 
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        
+        // Preparar los valores para el bind
+        $valores_pago = [
+            $id_compra,
+            $forma_pago,
+            $cuotas,
+            $monto_cuota,
+            $fecha_vencimiento
+        ];
+        
+        $resultadoPago = $sentenciaPago->execute($valores_pago);
+        
+        if (!$resultadoPago) {
+            $errorInfo = $sentenciaPago->errorInfo();
+            throw new Exception("Error al registrar la forma de pago: " . $errorInfo[2]);
+        }
+
+        // 3. Insertar detalle de compra y actualizar stock
         $sentenciaDetalle = $conexion->prepare(
             "INSERT INTO detalle_compras (id_compra, id_producto, cantidad, precio_unitario, subtotal) 
              VALUES (?, ?, ?, ?, ?)"
@@ -77,7 +125,6 @@ try {
         );
 
         foreach ($productos as $producto) {
-            // Validaciones por producto
             if (!isset($producto['id']) || !isset($producto['cantidad']) || !isset($producto['precio'])) {
                 throw new Exception("Formato de producto inválido.");
             }
@@ -126,7 +173,7 @@ try {
             ]);
         }
 
-        // 3. Registrar movimiento en caja (EGRESO)
+        // 4. Registrar movimiento en caja (EGRESO)
         $sentenciaCaja = $conexion->prepare(
             "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento) 
              VALUES ('EGRESO', 'COMPRA', ?, ?, ?, ?)"
@@ -154,12 +201,24 @@ try {
         // Confirmar transacción
         $conexion->commit();
 
+        // Mensaje de éxito con detalles de pago
+        $detallePago = "";
+        if ($forma_pago === 'CONTADO') {
+            $detallePago = "• Forma de pago: <strong>Contado</strong><br>";
+        } else {
+            $detallePago = "• Forma de pago: <strong>Crédito</strong><br>" .
+                          "• Cuotas: <strong>$cuotas</strong><br>" .
+                          "• Monto por cuota: <strong>₲ " . number_format($monto_cuota, 0, ',', '.') . "</strong><br>" .
+                          "• Vencimiento 1ra cuota: <strong>" . date('d/m/Y', strtotime($fecha_vencimiento)) . "</strong><br>";
+        }
+
         $titulo = "✅ Compra Registrada Exitosamente";
         $mensaje = "La compra ha sido registrada correctamente.<br><br>
                     <strong>Detalles:</strong><br>
                     • Compra ID: <strong>#$id_compra</strong><br>
                     • Proveedor: <strong>$nombreProveedor</strong><br>
                     • Total: <strong>₲ " . number_format($total_compra, 0, ',', '.') . "</strong><br>
+                    $detallePago
                     • Productos: <strong>" . count($productos) . "</strong><br>
                     • Stock actualizado automáticamente ✓<br>
                     • Movimiento de caja registrado ✓";
@@ -174,7 +233,6 @@ try {
         $conexion->rollBack();
     }
 
-    // log del error para debugging (no mostrar detalles técnicos al usuario)
     error_log("guardar_compra.php - ERROR: " . $e->getMessage());
 
     $titulo = "❌ Error al Registrar Compra";
@@ -232,7 +290,6 @@ try {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // intentar obtener el contenedor principal; si no existe, crearlo como fallback
             var mainContent = document.querySelector('.main-content');
             if (!mainContent) {
                 mainContent = document.createElement('div');
@@ -240,7 +297,6 @@ try {
                 document.body.appendChild(mainContent);
             }
 
-            // Pasar variables PHP a JS de forma segura usando json_encode
             var tipo = <?php echo json_encode($tipo); ?>;
             var titulo = <?php echo json_encode($titulo); ?>;
             var mensaje = <?php echo json_encode($mensaje); ?>;

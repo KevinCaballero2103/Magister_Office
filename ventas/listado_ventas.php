@@ -4,7 +4,7 @@ include_once "../db.php";
 
 $fecha_desde = isset($_GET['fecha_desde']) ? $_GET['fecha_desde'] : "";
 $fecha_hasta = isset($_GET['fecha_hasta']) ? $_GET['fecha_hasta'] : "";
-$proveedor = isset($_GET['proveedor']) ? $_GET['proveedor'] : "todos";
+$cliente = isset($_GET['cliente']) ? $_GET['cliente'] : "todos";
 $estado = isset($_GET['estado']) ? $_GET['estado'] : "1";
 $orden = isset($_GET['orden']) ? $_GET['orden'] : "fecha_desc";
 
@@ -13,20 +13,24 @@ $condiciones = array();
 
 // Filtro por estado
 if ($estado !== "99") {
-    $condiciones[] = "c.estado_compra = " . intval($estado);
+    $condiciones[] = "v.estado_venta = " . intval($estado);
 }
 
-// Filtro por proveedor
-if ($proveedor !== "todos") {
-    $condiciones[] = "c.id_proveedor = " . intval($proveedor);
+// Filtro por cliente
+if ($cliente !== "todos") {
+    if ($cliente === "sin_cliente") {
+        $condiciones[] = "v.id_cliente IS NULL";
+    } else {
+        $condiciones[] = "v.id_cliente = " . intval($cliente);
+    }
 }
 
 // Filtro por fechas
 if (!empty($fecha_desde)) {
-    $condiciones[] = "c.fecha_compra >= '$fecha_desde'";
+    $condiciones[] = "v.fecha_venta >= '$fecha_desde'";
 }
 if (!empty($fecha_hasta)) {
-    $condiciones[] = "c.fecha_compra <= '$fecha_hasta'";
+    $condiciones[] = "v.fecha_venta <= '$fecha_hasta'";
 }
 
 // Construir WHERE clause
@@ -38,60 +42,64 @@ if (!empty($condiciones)) {
 // Determinar orden
 switch ($orden) {
     case "id_asc":
-        $order_by = "ORDER BY c.id ASC";
+        $order_by = "ORDER BY v.id ASC";
         break;
     case "id_desc":
-        $order_by = "ORDER BY c.id DESC";
+        $order_by = "ORDER BY v.id DESC";
         break;
     case "fecha_asc":
-        $order_by = "ORDER BY c.fecha_compra ASC";
+        $order_by = "ORDER BY v.fecha_venta ASC";
         break;
     case "total_asc":
-        $order_by = "ORDER BY c.total_compra ASC";
+        $order_by = "ORDER BY v.total_venta ASC";
         break;
     case "total_desc":
-        $order_by = "ORDER BY c.total_compra DESC";
+        $order_by = "ORDER BY v.total_venta DESC";
         break;
     default:
-        $order_by = "ORDER BY c.fecha_compra DESC";
+        $order_by = "ORDER BY v.fecha_venta DESC";
         break;
 }
 
 $sentencia = $conexion->prepare("
-    SELECT c.*, p.nombre_proveedor
-    FROM compras c
-    INNER JOIN proveedores p ON c.id_proveedor = p.id
+    SELECT v.*, 
+           CONCAT(c.nombre_cliente, ' ', c.apellido_cliente) as nombre_cliente
+    FROM ventas v
+    LEFT JOIN clientes c ON v.id_cliente = c.id
     $where_clause
     $order_by
 ");
 
 $sentencia->execute();
-$compras = $sentencia->fetchAll(PDO::FETCH_OBJ);
+$ventas = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
-// Obtener detalles de cada compra
-$comprasConDetalles = array();
-foreach ($compras as $compra) {
+// Obtener detalles de cada venta
+$ventasConDetalles = array();
+foreach ($ventas as $venta) {
     $sentenciaDetalle = $conexion->prepare("
-        SELECT dc.*, prod.nombre_producto, prod.codigo_producto
-        FROM detalle_compras dc
-        INNER JOIN productos prod ON dc.id_producto = prod.id
-        WHERE dc.id_compra = ?
+        SELECT dv.*, 
+               CASE 
+                   WHEN dv.tipo_item = 'PRODUCTO' THEN 'PRODUCTO'
+                   WHEN dv.tipo_item = 'SERVICIO' THEN 'SERVICIO'
+               END as tipo
+        FROM detalle_ventas dv
+        WHERE dv.id_venta = ?
     ");
-    $sentenciaDetalle->execute([$compra->id]);
+    $sentenciaDetalle->execute([$venta->id]);
     $detalles = $sentenciaDetalle->fetchAll(PDO::FETCH_OBJ);
     
-    $compra->detalles = $detalles;
-    $comprasConDetalles[] = $compra;
+    $venta->detalles = $detalles;
+    $ventasConDetalles[] = $venta;
 }
 
-// Obtener proveedores para el filtro
-$sentenciaProveedores = $conexion->prepare("SELECT id, nombre_proveedor FROM proveedores WHERE estado_proveedor = 1 ORDER BY nombre_proveedor ASC");
-$sentenciaProveedores->execute();
-$proveedores = $sentenciaProveedores->fetchAll(PDO::FETCH_OBJ);
+// Obtener clientes para el filtro
+$sentenciaClientes = $conexion->prepare("SELECT id, nombre_cliente, apellido_cliente FROM clientes WHERE estado_cliente = 1 ORDER BY nombre_cliente ASC");
+$sentenciaClientes->execute();
+$clientes = $sentenciaClientes->fetchAll(PDO::FETCH_OBJ);
 
 // Convertir a JSON para JavaScript
-$comprasJSON = json_encode($comprasConDetalles);
-$proveedoresJSON = json_encode($proveedores);
+$ventasJSON = json_encode($ventasConDetalles);
+$clientesJSON = json_encode($clientes);
 ?>
 
 <!DOCTYPE html>
@@ -99,7 +107,7 @@ $proveedoresJSON = json_encode($proveedores);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historial de Compras</title>
+    <title>Historial de Ventas</title>
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/listados.css" rel="stylesheet">
     
@@ -223,9 +231,26 @@ $proveedoresJSON = json_encode($proveedores);
             font-weight: bold;
             text-decoration: line-through;
         }
+
+        .tipo-badge {
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .tipo-producto {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .tipo-servicio {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
         
-        .edit-link {
-            background: linear-gradient(45deg, #3498db, #2980b9) !important;
+        .anular-link {
+            background: linear-gradient(45deg, #e67e22, #d35400) !important;
             color: white !important;
             font-weight: bold;
             text-decoration: none !important;
@@ -236,30 +261,29 @@ $proveedoresJSON = json_encode($proveedores);
             font-size: 0.7rem;
         }
 
-        .edit-link:hover {
-            background: linear-gradient(45deg, #2980b9, #3498db) !important;
+        .anular-link:hover {
+            background: linear-gradient(45deg, #d35400, #e67e22) !important;
             transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(52, 152, 219, 0.4);
+            box-shadow: 0 3px 8px rgba(230, 126, 34, 0.4);
             color: white !important;
-        }
-        
-        .delete-link {
-            background: linear-gradient(45deg, #e74c3c, #c0392b) !important;
-            color: white !important;
-            font-weight: bold;
-            text-decoration: none !important;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-            display: inline-block;
-            font-size: 0.7rem;
         }
 
-        .delete-link:hover {
-            background: linear-gradient(45deg, #c0392b, #e74c3c) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
-            color: white !important;
+        .resumen-venta {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .resumen-venta p {
+            margin: 5px 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .resumen-venta strong {
+            color: #3498db;
         }
     </style>
 </head>
@@ -269,30 +293,42 @@ $proveedoresJSON = json_encode($proveedores);
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
-            const compras = <?php echo $comprasJSON; ?>;
-            const proveedores = <?php echo $proveedoresJSON; ?>;
+            const ventas = <?php echo $ventasJSON; ?>;
+            const clientes = <?php echo $clientesJSON; ?>;
             
-            let comprasHTML = '';
+            let ventasHTML = '';
             
-            if (compras && compras.length > 0) {
-                compras.forEach((compra, index) => {
-                    const estadoClass = compra.estado_compra == 1 ? 'estado-activo' : 'estado-anulado';
-                    const estadoText = compra.estado_compra == 1 ? 'ACTIVA' : 'ANULADA';
+            if (ventas && ventas.length > 0) {
+                ventas.forEach((venta, index) => {
+                    const estadoClass = venta.estado_venta == 1 ? 'estado-activo' : 'estado-anulado';
+                    const estadoText = venta.estado_venta == 1 ? 'ACTIVA' : 'ANULADA';
                     
-                    const fecha = new Date(compra.fecha_compra + 'T00:00:00');
+                    const fecha = new Date(venta.fecha_venta + 'T00:00:00');
                     const fechaFormateada = fecha.toLocaleDateString('es-PY', { 
                         day: '2-digit', 
                         month: '2-digit', 
                         year: 'numeric' 
                     });
                     
+                    const nombreCliente = venta.nombre_cliente || 'Cliente Genérico';
+                    
                     let detallesHTML = '';
-                    if (compra.detalles && compra.detalles.length > 0) {
-                        compra.detalles.forEach(detalle => {
+                    let countProductos = 0;
+                    let countServicios = 0;
+                    
+                    if (venta.detalles && venta.detalles.length > 0) {
+                        venta.detalles.forEach(detalle => {
+                            const tipoBadge = detalle.tipo_item === 'PRODUCTO' ? 
+                                '<span class="tipo-badge tipo-producto">PRODUCTO</span>' : 
+                                '<span class="tipo-badge tipo-servicio">SERVICIO</span>';
+                            
+                            if (detalle.tipo_item === 'PRODUCTO') countProductos++;
+                            if (detalle.tipo_item === 'SERVICIO') countServicios++;
+                            
                             detallesHTML += `
                                 <tr>
-                                    <td>${detalle.nombre_producto}</td>
-                                    <td>${detalle.codigo_producto || '-'}</td>
+                                    <td>${tipoBadge}</td>
+                                    <td>${detalle.descripcion}</td>
                                     <td>${detalle.cantidad}</td>
                                     <td>₲ ${parseFloat(detalle.precio_unitario).toLocaleString('es-PY', {minimumFractionDigits: 2})}</td>
                                     <td><strong>₲ ${parseFloat(detalle.subtotal).toLocaleString('es-PY', {minimumFractionDigits: 2})}</strong></td>
@@ -301,41 +337,55 @@ $proveedoresJSON = json_encode($proveedores);
                         });
                     }
                     
-                    comprasHTML += `
+                    ventasHTML += `
                         <tr>
-                            <td><strong>#${compra.id}</strong></td>
+                            <td><strong>#${venta.id}</strong></td>
                             <td>${fechaFormateada}</td>
-                            <td>${compra.nombre_proveedor}</td>
-                            <td>${compra.numero_compra || '-'}</td>
-                            <td><span class="total-badge">₲ ${parseFloat(compra.total_compra).toLocaleString('es-PY', {minimumFractionDigits: 2})}</span></td>
+                            <td>${nombreCliente}</td>
+                            <td>${venta.numero_venta || '-'}</td>
+                            <td><span class="total-badge">₲ ${parseFloat(venta.total_venta).toLocaleString('es-PY', {minimumFractionDigits: 2})}</span></td>
                             <td><span class="${estadoClass}">${estadoText}</span></td>
                             <td>
                                 <button class="expand-btn" onclick="toggleDetails(${index})" id="btn-${index}">
                                     <span class="expand-icon" id="icon-${index}">▼</span>
                                     <span id="text-${index}">Ver Detalle</span>
                                 </button>
+                                ${venta.estado_venta == 1 ? `
                                 <br style="margin-bottom: 5px;">
-                                <a href='frm_editar_compra.php?id=${compra.id}' class='edit-link' style='margin-right: 5px;'>
-                                    ✏️ EDITAR
+                                <a href='anular_venta.php?id=${venta.id}' class='anular-link'
+                                   onclick="return confirm('⚠️ ¿Estás seguro de anular esta venta?\\n\\nEsto revertirá el stock de los productos y eliminará el movimiento de caja.');">
+                                    ❌ ANULAR
                                 </a>
-                                <a href='eliminar_compra.php?id=${compra.id}' class='delete-link'
-                                   onclick="return confirm('⚠️ ¿Estás seguro de eliminar esta compra?\\n\\nEsto revertirá el stock de los productos.');">
-                                    🗑️ ELIMINAR
-                                </a>
+                                ` : ''}
                             </td>
                         </tr>
                         <tr class="expandable-row" id="details-${index}">
                             <td colspan="7">
                                 <div class="details-container">
                                     <div class="details-title">
-                                        📦 Productos Comprados (${compra.detalles ? compra.detalles.length : 0} items)
+                                        💰 Detalle de Venta #${venta.id}
                                     </div>
-                                    ${compra.observaciones ? `<p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 10px;"><strong>Observaciones:</strong> ${compra.observaciones}</p>` : ''}
-                                    <table class="details-table">
+                                    
+                                    <div class="resumen-venta">
+                                        <p><strong>Cliente:</strong> ${nombreCliente}</p>
+                                        <p><strong>Fecha:</strong> ${fechaFormateada}</p>
+                                        ${venta.numero_venta ? `<p><strong>N° Ticket:</strong> ${venta.numero_venta}</p>` : ''}
+                                        <p><strong>Items:</strong> ${venta.detalles ? venta.detalles.length : 0} (${countProductos} productos, ${countServicios} servicios)</p>
+                                        <p><strong>Subtotal:</strong> ₲ ${parseFloat(venta.subtotal).toLocaleString('es-PY', {minimumFractionDigits: 2})}</p>
+                                        <p><strong>Descuento:</strong> ₲ ${parseFloat(venta.descuento).toLocaleString('es-PY', {minimumFractionDigits: 2})}</p>
+                                        <p style="font-size: 1rem;"><strong>TOTAL:</strong> <strong style="color: #27ae60;">₲ ${parseFloat(venta.total_venta).toLocaleString('es-PY', {minimumFractionDigits: 2})}</strong></p>
+                                        ${venta.observaciones ? `<p><strong>Observaciones:</strong> ${venta.observaciones}</p>` : ''}
+                                    </div>
+                                    
+                                    <div style="margin-top: 15px;">
+                                        <strong style="color: #f1c40f;">Items Vendidos:</strong>
+                                    </div>
+                                    
+                                    <table class="details-table" style="margin-top: 10px;">
                                         <thead>
                                             <tr>
-                                                <th>Producto</th>
-                                                <th>Código</th>
+                                                <th>Tipo</th>
+                                                <th>Descripción</th>
                                                 <th>Cantidad</th>
                                                 <th>Precio Unit.</th>
                                                 <th>Subtotal</th>
@@ -351,29 +401,30 @@ $proveedoresJSON = json_encode($proveedores);
                     `;
                 });
             } else {
-                comprasHTML = `
+                ventasHTML = `
                     <tr>
                         <td colspan="7" class="no-results">
-                            No se encontraron compras con los criterios seleccionados
+                            No se encontraron ventas con los criterios seleccionados
                         </td>
                     </tr>
                 `;
             }
 
-            // Construir opciones de proveedores
-            let proveedoresOptions = '<option value="todos">-- TODOS --</option>';
-            proveedores.forEach(prov => {
-                const selected = '<?php echo $proveedor; ?>' == prov.id ? 'selected' : '';
-                proveedoresOptions += `<option value="${prov.id}" ${selected}>${prov.nombre_proveedor}</option>`;
+            // Construir opciones de clientes
+            let clientesOptions = '<option value="todos">-- TODOS --</option>';
+            clientesOptions += '<option value="sin_cliente">SIN CLIENTE (Genéricos)</option>';
+            clientes.forEach(cli => {
+                const selected = '<?php echo $cliente; ?>' == cli.id ? 'selected' : '';
+                clientesOptions += `<option value="${cli.id}" ${selected}>${cli.nombre_cliente} ${cli.apellido_cliente}</option>`;
             });
 
             const contentHTML = `
                 <div class='list-container'>
-                    <h1 class='list-title'>📦 Historial de Compras</h1>
+                    <h1 class='list-title'>💰 Historial de Ventas</h1>
                     
                     <div class='filter-container'>
                         <form method='GET' action=''>
-                            <label class='label'>Filtrar Compras</label>
+                            <label class='label'>Filtrar Ventas</label>
                             <div class='search-controls'>
                                 <div class='search-field' style='min-width: 140px;'>
                                     <label>Desde:</label>
@@ -385,11 +436,11 @@ $proveedoresJSON = json_encode($proveedores);
                                     <input type='date' name='fecha_hasta' class='search-input' value='<?php echo $fecha_hasta; ?>'>
                                 </div>
                                 
-                                <div class='search-field' style='min-width: 200px;'>
-                                    <label>Proveedor:</label>
+                                <div class='search-field' style='min-width: 220px;'>
+                                    <label>Cliente:</label>
                                     <div class='select'>
-                                        <select name='proveedor' class='search-input'>
-                                            ${proveedoresOptions}
+                                        <select name='cliente' class='search-input'>
+                                            ${clientesOptions}
                                         </select>
                                     </div>
                                 </div>
@@ -434,22 +485,22 @@ $proveedoresJSON = json_encode($proveedores);
                                 <tr>
                                     <th>ID</th>
                                     <th>FECHA</th>
-                                    <th>PROVEEDOR</th>
-                                    <th>N° FACTURA</th>
+                                    <th>CLIENTE</th>
+                                    <th>N° TICKET</th>
                                     <th>TOTAL</th>
                                     <th>ESTADO</th>
                                     <th>ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${comprasHTML}
+                                ${ventasHTML}
                             </tbody>
                         </table>
                     </div>
 
                     <div style='text-align: center; margin-top: 25px;'>
-                        <a href='./frm_registrar_compra.php' class='button'>
-                            ➕ Registrar Nueva Compra
+                        <a href='./frm_registrar_venta.php' class='button'>
+                            ➕ Registrar Nueva Venta
                         </a>
                     </div>
                 </div>

@@ -35,7 +35,6 @@ $relacionesJSON = json_encode($relaciones);
             color: white;
         }
 
-        /* FIX: Select con opciones visibles */
         .select select {
             background: rgba(236, 240, 241, 0.1) !important;
             border: 2px solid rgba(241, 196, 15, 0.3) !important;
@@ -64,7 +63,6 @@ $relacionesJSON = json_encode($relaciones);
             box-shadow: 0 0 0 0.125em rgba(241, 196, 15, 0.25) !important;
         }
 
-        /* Tabla de productos seleccionados */
         .products-table {
             width: 100%;
             background: rgba(0,0,0,0.3);
@@ -182,6 +180,73 @@ $relacionesJSON = json_encode($relaciones);
             font-style: italic;
         }
 
+        /* NUEVO: Sección de forma de pago */
+        .payment-section {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .payment-section label.label {
+            color: #3498db !important;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            margin: 15px 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3498db;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            color: white !important;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 !important;
+        }
+
+        .credito-fields {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+
+        .credito-fields.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -221,15 +286,12 @@ $relacionesJSON = json_encode($relaciones);
             }
 
             function onProveedorChange(idProveedor) {
-                console.log('Proveedor seleccionado:', idProveedor); // Debug
                 selectedProveedor = idProveedor;
                 selectedProducts = [];
                 renderProductsTable();
                 renderProductSelector();
                 
-                // Mostrar mensaje si no hay productos
                 const productosProveedor = getProveedorProductos(idProveedor);
-                console.log('Productos encontrados:', productosProveedor); // Debug
             }
 
             function renderProductSelector() {
@@ -241,8 +303,6 @@ $relacionesJSON = json_encode($relaciones);
                 }
 
                 const productosProveedor = getProveedorProductos(selectedProveedor);
-                
-                console.log('Renderizando productos:', productosProveedor.length); // Debug
                 
                 if (productosProveedor.length === 0) {
                     container.innerHTML = `
@@ -282,38 +342,37 @@ $relacionesJSON = json_encode($relaciones);
                 });
                 
                 html += `
-                        </select>
+                                        </select>
+                                    </div>
+                                    <p class="stock-info" id="stock-info"></p>
+                                </div>
+                            </div>
+                            <div class="column is-3">
+                                <div class="field">
+                                    <label class="label" style="font-size: 0.9rem;">Cantidad</label>
+                                    <input type="number" class="input" id="input-cantidad" min="1" value="1" placeholder="Cantidad">
+                                </div>
+                            </div>
+                            <div class="column is-3">
+                                <div class="field">
+                                    <label class="label" style="font-size: 0.9rem;">Precio Unit.</label>
+                                    <input type="number" step="0.01" class="input" id="input-precio" min="0" placeholder="0.00" readonly>
+                                </div>
+                            </div>
+                            <div class="column is-1">
+                                <div class="field">
+                                    <label class="label" style="font-size: 0.9rem; opacity: 0;">.</label>
+                                    <button type="button" class="add-product-btn" onclick="addProduct()" id="btn-add-product" disabled>
+                                        ➕
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="stock-info" id="stock-info"></p>
-                </div>
-            </div>
-            <div class="column is-3">
-                <div class="field">
-                    <label class="label" style="font-size: 0.9rem;">Cantidad</label>
-                    <input type="number" class="input" id="input-cantidad" min="1" value="1" placeholder="Cantidad">
-                </div>
-            </div>
-            <div class="column is-3">
-                <div class="field">
-                    <label class="label" style="font-size: 0.9rem;">Precio Unit.</label>
-                    <input type="number" step="0.01" class="input" id="input-precio" min="0" placeholder="0.00" readonly>
-                </div>
-            </div>
-            <div class="column is-1">
-                <div class="field">
-                    <label class="label" style="font-size: 0.9rem; opacity: 0;">.</label>
-                    <button type="button" class="add-product-btn" onclick="addProduct()" id="btn-add-product" disabled>
-                        ➕
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
                 `;
                 
                 container.innerHTML = html;
                 
-                // Event listener para cuando selecciona un producto
                 document.getElementById('select-producto').addEventListener('change', function(e) {
                     const idProducto = e.target.value;
                     const btnAdd = document.getElementById('btn-add-product');
@@ -356,7 +415,6 @@ $relacionesJSON = json_encode($relaciones);
                 renderProductsTable();
                 renderProductSelector();
                 
-                // Reset campos
                 document.getElementById('select-producto').value = '';
                 document.getElementById('input-cantidad').value = '1';
                 document.getElementById('input-precio').value = '';
@@ -424,11 +482,34 @@ $relacionesJSON = json_encode($relaciones);
                 
                 container.innerHTML = html;
                 
-                // Mostrar total
                 document.getElementById('total-container').style.display = 'block';
                 document.getElementById('total-amount').textContent = '₲ ' + total.toLocaleString('es-PY', {minimumFractionDigits: 2});
                 document.getElementById('input-total').value = total.toFixed(2);
+                
+                // Actualizar monto de cuota si está en crédito
+                updateCuotaMonto();
             }
+
+            window.onFormaPagoChange = function(formaPago) {
+                const creditoFields = document.getElementById('credito-fields');
+                if (formaPago === 'CREDITO') {
+                    creditoFields.classList.add('active');
+                    document.getElementById('cuotas').required = true;
+                    document.getElementById('fecha_vencimiento').required = true;
+                } else {
+                    creditoFields.classList.remove('active');
+                    document.getElementById('cuotas').required = false;
+                    document.getElementById('fecha_vencimiento').required = false;
+                }
+            };
+
+            window.updateCuotaMonto = function() {
+                const total = parseFloat(document.getElementById('input-total').value) || 0;
+                const cuotas = parseInt(document.getElementById('cuotas').value) || 1;
+                const montoCuota = cuotas > 0 ? (total / cuotas).toFixed(2) : '0.00';
+                document.getElementById('monto-cuota-display').textContent = '₲ ' + parseFloat(montoCuota).toLocaleString('es-PY', {minimumFractionDigits: 2});
+                document.getElementById('monto_cuota').value = montoCuota;
+            };
 
             window.validateForm = function() {
                 if (!selectedProveedor) {
@@ -445,6 +526,22 @@ $relacionesJSON = json_encode($relaciones);
                 if (!fecha) {
                     alert('Por favor ingresa la fecha de compra');
                     return false;
+                }
+                
+                const formaPago = document.querySelector('input[name="forma_pago"]:checked').value;
+                if (formaPago === 'CREDITO') {
+                    const cuotas = parseInt(document.getElementById('cuotas').value);
+                    const fechaVencimiento = document.getElementById('fecha_vencimiento').value;
+                    
+                    if (!cuotas || cuotas < 1) {
+                        alert('Por favor ingresa el número de cuotas');
+                        return false;
+                    }
+                    
+                    if (!fechaVencimiento) {
+                        alert('Por favor ingresa la fecha de vencimiento de la primera cuota');
+                        return false;
+                    }
                 }
                 
                 return confirm('¿Confirmar registro de compra?\n\nEsto actualizará el stock de los productos.');
@@ -501,6 +598,57 @@ $relacionesJSON = json_encode($relaciones);
                             </div>
                         </div>
 
+                        <!-- NUEVO: Forma de Pago -->
+                        <div class="payment-section">
+                            <label class="label">💳 Forma de Pago *</label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" name="forma_pago" id="radio-contado" value="CONTADO" checked onchange="onFormaPagoChange('CONTADO')">
+                                    <label for="radio-contado">Contado</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" name="forma_pago" id="radio-credito" value="CREDITO" onchange="onFormaPagoChange('CREDITO')">
+                                    <label for="radio-credito">Crédito (Cuotas)</label>
+                                </div>
+                            </div>
+
+                            <!-- Campos de crédito (ocultos por defecto) -->
+                            <div class="credito-fields" id="credito-fields">
+                                <div class="columns">
+                                    <div class="column is-4">
+                                        <div class="field">
+                                            <label class="label">Número de Cuotas</label>
+                                            <div class="control">
+                                                <input class="input" type="number" name="cuotas" id="cuotas" min="1" placeholder="Ej: 3" oninput="updateCuotaMonto()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="column is-4">
+                                        <div class="field">
+                                            <label class="label">Monto por Cuota</label>
+                                            <div class="control">
+                                                <div style="background: rgba(236, 240, 241, 0.1); border: 2px solid rgba(241, 196, 15, 0.3); padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; color: #27ae60;">
+                                                    <span id="monto-cuota-display">₲ 0.00</span>
+                                                </div>
+                                                <input type="hidden" name="monto_cuota" id="monto_cuota" value="0">
+                                            </div>
+                                            <p class="help" style="color: rgba(255,255,255,0.7);">
+                                                Se calcula automáticamente: Total / Cuotas
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="column is-4">
+                                        <div class="field">
+                                            <label class="label">Vencimiento 1ra Cuota</label>
+                                            <div class="control">
+                                                <input class="input" type="date" name="fecha_vencimiento" id="fecha_vencimiento">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Selector de productos -->
                         <div id="product-selector-container"></div>
 
@@ -534,10 +682,7 @@ $relacionesJSON = json_encode($relaciones);
             `;
             
             mainContent.innerHTML = formHTML;
-            // Después de inyectar el formulario al DOM
-            mainContent.innerHTML = formHTML;
-
-            // Conectar el evento al select de forma segura (ya que onProveedorChange existe en este scope)
+            
             const selectProveedor = document.getElementById('id_proveedor');
             if (selectProveedor) {
                 selectProveedor.addEventListener('change', function(e) {
