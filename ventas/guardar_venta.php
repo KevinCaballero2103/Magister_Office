@@ -2,6 +2,9 @@
 $mensaje = "";
 $tipo = "";
 $titulo = "";
+$id_venta = null;
+$tipo_comprobante = "";
+$numero_factura = "";
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,6 +26,22 @@ try {
         $descuento = isset($_POST['descuento']) ? floatval($_POST['descuento']) : 0;
         $total_venta = isset($_POST['total_venta']) ? floatval($_POST['total_venta']) : 0;
         $observaciones = isset($_POST['observaciones']) ? trim($_POST['observaciones']) : null;
+        $tipo_comprobante = isset($_POST['tipo_comprobante']) ? $_POST['tipo_comprobante'] : "";
+        
+        // Si es FACTURA, automáticamente es factura legal
+        $es_factura_legal = ($tipo_comprobante === 'FACTURA') ? 1 : 0;
+        
+        $condicion_venta = isset($_POST['condicion_venta']) ? $_POST['condicion_venta'] : 'CONTADO';
+        $forma_pago = isset($_POST['forma_pago']) ? $_POST['forma_pago'] : 'CONTADO';
+        
+        // Solo tomar cuotas y fecha si es CRÉDITO
+        if ($condicion_venta === 'CREDITO') {
+            $cuotas = isset($_POST['cuotas']) && $_POST['cuotas'] > 0 ? intval($_POST['cuotas']) : 1;
+            $fecha_vencimiento_primera = isset($_POST['fecha_vencimiento_primera']) && !empty($_POST['fecha_vencimiento_primera']) ? $_POST['fecha_vencimiento_primera'] : null;
+        } else {
+            $cuotas = null;
+            $fecha_vencimiento_primera = null;
+        }
         $items = isset($_POST['items']) ? $_POST['items'] : array();
 
         // Validaciones
@@ -40,8 +59,8 @@ try {
 
         // 1. Insertar la venta (cabecera)
         $sentenciaVenta = $conexion->prepare(
-            "INSERT INTO ventas (id_cliente, numero_venta, fecha_venta, subtotal, descuento, total_venta, observaciones, estado_venta) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, 1)"
+            "INSERT INTO ventas (id_cliente, numero_venta, fecha_venta, subtotal, descuento, total_venta, observaciones, tipo_comprobante, es_factura_legal, condicion_venta, forma_pago, cuotas, fecha_vencimiento_primera, estado_venta) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)"
         );
         $resultadoVenta = $sentenciaVenta->execute([
             $id_cliente,
@@ -50,7 +69,13 @@ try {
             $subtotal,
             $descuento,
             $total_venta,
-            $observaciones
+            $observaciones,
+            $tipo_comprobante,
+            $es_factura_legal,
+            $condicion_venta,
+            $forma_pago,
+            $cuotas,
+            $fecha_vencimiento_primera
         ]);
 
         if (!$resultadoVenta) {
@@ -59,6 +84,7 @@ try {
 
         // Obtener ID de la venta insertada
         $id_venta = $conexion->lastInsertId();
+        $numero_factura = "VENTA-" . str_pad($id_venta, 6, "0", STR_PAD_LEFT);
 
         // 2. Insertar detalle de venta y actualizar stock (solo productos)
         $sentenciaDetalle = $conexion->prepare(
@@ -163,7 +189,8 @@ try {
             }
         }
 
-        $conceptoCaja = "VENTA #$id_venta - $nombreCliente" . ($numero_venta ? " (Ticket: $numero_venta)" : "");
+        $nombreClienteFormatted = ($nombreCliente === "Cliente Genérico") ? "Venta Genérica" : $nombreCliente;
+        $conceptoCaja = "VENTA #$id_venta - $nombreClienteFormatted" . ($numero_venta ? " (Ticket: $numero_venta)" : "");
 
         $resultadoCaja = $sentenciaCaja->execute([
             $id_venta,
@@ -174,6 +201,37 @@ try {
 
         if (!$resultadoCaja) {
             throw new Exception("Error al registrar el movimiento de caja");
+        }
+
+        // 4. Generar cuotas si la venta es a CRÉDITO
+        if ($condicion_venta === 'CREDITO' && $cuotas > 0 && $fecha_vencimiento_primera) {
+            $sentenciaCuotas = $conexion->prepare(
+                "INSERT INTO cuotas_venta (id_venta, numero, monto, fecha_vencimiento, estado) 
+                 VALUES (?, ?, ?, ?, 'PENDIENTE')"
+            );
+
+            $montoPorCuota = $total_venta / $cuotas;
+            $fechaVencimiento = new DateTime($fecha_vencimiento_primera);
+
+            for ($i = 1; $i <= $cuotas; $i++) {
+                $resultadoCuota = $sentenciaCuotas->execute([
+                    $id_venta,
+                    $i,
+                    round($montoPorCuota, 2),
+                    $fechaVencimiento->format('Y-m-d')
+                ]);
+
+                if (!$resultadoCuota) {
+                    throw new Exception("Error al registrar cuota $i de la venta");
+                }
+
+                // Incrementar fecha para la próxima cuota (30 días)
+                $fechaVencimiento->add(new DateInterval('P30D'));
+            }
+
+            $cuotasInfo = "<br>• Cuotas generadas: <strong>$cuotas x ₲ " . number_format($montoPorCuota, 0, ',', '.') . "</strong>";
+        } else {
+            $cuotasInfo = "";
         }
 
         // Confirmar transacción
@@ -187,6 +245,7 @@ try {
                     • Subtotal: <strong>₲ " . number_format($subtotal, 0, ',', '.') . "</strong><br>
                     • Descuento: <strong>₲ " . number_format($descuento, 0, ',', '.') . "</strong><br>
                     • Total: <strong>₲ " . number_format($total_venta, 0, ',', '.') . "</strong><br>
+                    • Condición: <strong>$condicion_venta</strong>$cuotasInfo<br>
                     • Productos: <strong>$cantidadProductos</strong><br>
                     • Servicios: <strong>$cantidadServicios</strong><br>
                     • Stock actualizado automáticamente ✓<br>
@@ -249,9 +308,68 @@ try {
             display: inline-block;
             margin-bottom: 6px;
         }
-        .button-group { display:flex; gap:12px; justify-content:center; margin-top:12px; }
-        .action-button, .secondary-button { padding: 10px 18px; border-radius: 8px; text-decoration: none; color: #2c3e50; background: linear-gradient(45deg,#f39c12,#f1c40f); font-weight: bold; }
-        .secondary-button { background: rgba(236,240,241,0.1); color: white; border: 2px solid rgba(241,196,15,0.2); }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .action-button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #2c3e50;
+            background: linear-gradient(45deg, #f39c12, #f1c40f);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .action-button:hover {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+            transform: translateY(-2px);
+        }
+        .secondary-button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            background: rgba(236, 240, 241, 0.1);
+            color: white;
+            border: 2px solid rgba(241, 196, 15, 0.2);
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .secondary-button:hover {
+            background: rgba(241, 196, 15, 0.15);
+            border-color: #f1c40f;
+        }
+        .print-button {
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        .print-button:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+        }
+        .print-button:disabled {
+            background: rgba(128, 128, 128, 0.5);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
@@ -269,9 +387,27 @@ try {
             var tipo = <?php echo json_encode($tipo); ?>;
             var titulo = <?php echo json_encode($titulo); ?>;
             var mensaje = <?php echo json_encode($mensaje); ?>;
+            var idVenta = <?php echo json_encode($id_venta); ?>;
+            var tipoComprobante = <?php echo json_encode($tipo_comprobante); ?>;
 
             var icono = tipo === 'success' ? '💰✅' : '❌';
             var claseIcono = tipo === 'success' ? 'success-icon' : 'error-icon';
+
+            var botonesHTML = "";
+            
+            if (tipo === 'success' && idVenta) {
+                // Botón de imprimir (solo si hay tipo de comprobante seleccionado)
+                if (tipoComprobante) {
+                    var labelImpresion = tipoComprobante === 'FACTURA' ? 'Imprimir Factura' : 'Imprimir Recibo';
+                    botonesHTML += "<button class='print-button' onclick=\"imprimirComprobante(" + idVenta + ", '" + tipoComprobante + "')\">🖨️ " + labelImpresion + "</button>";
+                }
+                
+                botonesHTML += "<a href='./listado_ventas.php' class='action-button'>📋 Ver Listado de Ventas</a>";
+                botonesHTML += "<a href='./frm_registrar_venta.php' class='secondary-button'>➕ Registrar Nueva Venta</a>";
+            } else if (tipo === 'error') {
+                botonesHTML += "<a href='./frm_registrar_venta.php' class='secondary-button'>⬅️ Volver al Formulario</a>";
+                botonesHTML += "<a href='./listado_ventas.php' class='action-button'>📋 Ver Historial</a>";
+            }
 
             var contentHTML = ""
                 + "<div class='message-container'>"
@@ -279,13 +415,23 @@ try {
                 + "  <h1 class='message-title'>" + titulo + "</h1>"
                 + "  <div class='message-content'>" + mensaje + "</div>"
                 + "  <div class='button-group'>"
-                + "    <a href='./listado_ventas.php' class='action-button'>📋 Ver Listado de Ventas</a>"
-                + "    <a href='./frm_registrar_venta.php' class='secondary-button'>➕ Registrar Nueva Venta</a>"
+                + botonesHTML
                 + "  </div>"
                 + "</div>";
 
             mainContent.innerHTML = contentHTML;
         });
+
+        function imprimirComprobante(idVenta, tipoComprobante) {
+            if (!idVenta || !tipoComprobante) {
+                alert('Datos inválidos para imprimir');
+                return;
+            }
+            
+            // Abre en una nueva ventana el archivo de impresión
+            var url = './imprimir_comprobante.php?id_venta=' + idVenta + '&tipo=' + tipoComprobante;
+            window.open(url, '_blank', 'width=900,height=700');
+        }
     </script>
 </body>
 </html>
