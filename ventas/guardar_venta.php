@@ -4,7 +4,7 @@ $tipo = "";
 $titulo = "";
 $id_venta = null;
 $tipo_comprobante = "";
-$numero_factura = "";
+$numero_comprobante_asignado = "";
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,29 +19,13 @@ try {
 
         // Datos de la venta
         $id_cliente = isset($_POST['id_cliente']) && $_POST['id_cliente'] !== '' ? $_POST['id_cliente'] : null;
-        $numero_venta = isset($_POST['numero_venta']) ? trim($_POST['numero_venta']) : null;
-        $numero_venta = $numero_venta === "" ? null : $numero_venta;
         $fecha_venta = isset($_POST['fecha_venta']) ? $_POST['fecha_venta'] : null;
         $subtotal = isset($_POST['subtotal']) ? floatval($_POST['subtotal']) : 0;
-        $descuento = isset($_POST['descuento']) ? floatval($_POST['descuento']) : 0;
         $total_venta = isset($_POST['total_venta']) ? floatval($_POST['total_venta']) : 0;
         $observaciones = isset($_POST['observaciones']) ? trim($_POST['observaciones']) : null;
-        $tipo_comprobante = isset($_POST['tipo_comprobante']) ? $_POST['tipo_comprobante'] : "";
-        
-        // Si es FACTURA, automáticamente es factura legal
-        $es_factura_legal = ($tipo_comprobante === 'FACTURA') ? 1 : 0;
-        
+        $tipo_comprobante = isset($_POST['tipo_comprobante']) && $_POST['tipo_comprobante'] !== '' ? $_POST['tipo_comprobante'] : null;
         $condicion_venta = isset($_POST['condicion_venta']) ? $_POST['condicion_venta'] : 'CONTADO';
         $forma_pago = isset($_POST['forma_pago']) ? $_POST['forma_pago'] : 'CONTADO';
-        
-        // Solo tomar cuotas y fecha si es CRÉDITO
-        if ($condicion_venta === 'CREDITO') {
-            $cuotas = isset($_POST['cuotas']) && $_POST['cuotas'] > 0 ? intval($_POST['cuotas']) : 1;
-            $fecha_vencimiento_primera = isset($_POST['fecha_vencimiento_primera']) && !empty($_POST['fecha_vencimiento_primera']) ? $_POST['fecha_vencimiento_primera'] : null;
-        } else {
-            $cuotas = null;
-            $fecha_vencimiento_primera = null;
-        }
         $items = isset($_POST['items']) ? $_POST['items'] : array();
 
         // Validaciones
@@ -57,25 +41,20 @@ try {
             throw new Exception("El total de la venta debe ser mayor a 0");
         }
 
-        // 1. Insertar la venta (cabecera)
+        // 1. Insertar la venta (SIN número todavía)
         $sentenciaVenta = $conexion->prepare(
-            "INSERT INTO ventas (id_cliente, numero_venta, fecha_venta, subtotal, descuento, total_venta, observaciones, tipo_comprobante, es_factura_legal, condicion_venta, forma_pago, cuotas, fecha_vencimiento_primera, estado_venta) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)"
+            "INSERT INTO ventas (id_cliente, numero_venta, fecha_venta, subtotal, descuento, total_venta, observaciones, tipo_comprobante, condicion_venta, forma_pago, estado_venta) 
+             VALUES (?, NULL, ?, ?, 0.00, ?, ?, ?, ?, ?, 1)"
         );
         $resultadoVenta = $sentenciaVenta->execute([
             $id_cliente,
-            $numero_venta,
             $fecha_venta,
             $subtotal,
-            $descuento,
             $total_venta,
             $observaciones,
             $tipo_comprobante,
-            $es_factura_legal,
             $condicion_venta,
-            $forma_pago,
-            $cuotas,
-            $fecha_vencimiento_primera
+            $forma_pago
         ]);
 
         if (!$resultadoVenta) {
@@ -84,9 +63,27 @@ try {
 
         // Obtener ID de la venta insertada
         $id_venta = $conexion->lastInsertId();
-        $numero_factura = "VENTA-" . str_pad($id_venta, 6, "0", STR_PAD_LEFT);
 
-        // 2. Insertar detalle de venta y actualizar stock (solo productos)
+        // 2. GENERAR NUMERACIÓN AUTOMÁTICA según tipo de comprobante
+        $numero_comprobante_asignado = null;
+        
+        if ($tipo_comprobante === 'FACTURA') {
+            // FACTURA: 001-001-0000826 (continúa desde 826)
+            $FACTURA_BASE = 825; // La última factura real fue 825
+            $numero_factura = $FACTURA_BASE + $id_venta;
+            $numero_comprobante_asignado = '001-001-' . str_pad($numero_factura, 7, '0', STR_PAD_LEFT);
+        } elseif ($tipo_comprobante === 'TICKET') {
+            // TICKET: 0000001 (simple contador basado en ID)
+            $numero_comprobante_asignado = str_pad($id_venta, 7, '0', STR_PAD_LEFT);
+        }
+
+        // Actualizar venta con el número generado
+        if ($numero_comprobante_asignado) {
+            $sentenciaActualizarNumero = $conexion->prepare("UPDATE ventas SET numero_venta = ? WHERE id = ?");
+            $sentenciaActualizarNumero->execute([$numero_comprobante_asignado, $id_venta]);
+        }
+
+        // 3. Insertar detalle de venta y actualizar stock (solo productos)
         $sentenciaDetalle = $conexion->prepare(
             "INSERT INTO detalle_ventas (id_venta, tipo_item, id_item, descripcion, cantidad, precio_unitario, subtotal) 
              VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -109,7 +106,6 @@ try {
         $cantidadServicios = 0;
 
         foreach ($items as $item) {
-            // Validaciones por item
             if (!isset($item['tipo']) || !isset($item['id']) || !isset($item['descripcion']) || !isset($item['cantidad']) || !isset($item['precio'])) {
                 throw new Exception("Formato de item inválido.");
             }
@@ -172,7 +168,7 @@ try {
             }
         }
 
-        // 3. Registrar movimiento en caja (INGRESO)
+        // 4. Registrar movimiento en caja (INGRESO)
         $sentenciaCaja = $conexion->prepare(
             "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento) 
              VALUES ('INGRESO', 'VENTA', ?, ?, ?, ?)"
@@ -189,8 +185,7 @@ try {
             }
         }
 
-        $nombreClienteFormatted = ($nombreCliente === "Cliente Genérico") ? "Venta Genérica" : $nombreCliente;
-        $conceptoCaja = "VENTA #$id_venta - $nombreClienteFormatted" . ($numero_venta ? " (Ticket: $numero_venta)" : "");
+        $conceptoCaja = "VENTA #$id_venta - $nombreCliente" . ($numero_comprobante_asignado ? " ($tipo_comprobante: $numero_comprobante_asignado)" : "");
 
         $resultadoCaja = $sentenciaCaja->execute([
             $id_venta,
@@ -203,53 +198,30 @@ try {
             throw new Exception("Error al registrar el movimiento de caja");
         }
 
-        // 4. Generar cuotas si la venta es a CRÉDITO
-        if ($condicion_venta === 'CREDITO' && $cuotas > 0 && $fecha_vencimiento_primera) {
-            $sentenciaCuotas = $conexion->prepare(
-                "INSERT INTO cuotas_venta (id_venta, numero, monto, fecha_vencimiento, estado) 
-                 VALUES (?, ?, ?, ?, 'PENDIENTE')"
-            );
-
-            $montoPorCuota = $total_venta / $cuotas;
-            $fechaVencimiento = new DateTime($fecha_vencimiento_primera);
-
-            for ($i = 1; $i <= $cuotas; $i++) {
-                $resultadoCuota = $sentenciaCuotas->execute([
-                    $id_venta,
-                    $i,
-                    round($montoPorCuota, 2),
-                    $fechaVencimiento->format('Y-m-d')
-                ]);
-
-                if (!$resultadoCuota) {
-                    throw new Exception("Error al registrar cuota $i de la venta");
-                }
-
-                // Incrementar fecha para la próxima cuota (30 días)
-                $fechaVencimiento->add(new DateInterval('P30D'));
-            }
-
-            $cuotasInfo = "<br>• Cuotas generadas: <strong>$cuotas x ₲ " . number_format($montoPorCuota, 0, ',', '.') . "</strong>";
-        } else {
-            $cuotasInfo = "";
-        }
-
         // Confirmar transacción
         $conexion->commit();
+
+        $iva_informativo = round($total_venta / 11, 2);
+        
+        $infoNumero = $numero_comprobante_asignado ? 
+            "<br>• Número asignado: <strong style='color: #27ae60;'>$numero_comprobante_asignado</strong>" : 
+            "";
 
         $titulo = "✅ Venta Registrada Exitosamente";
         $mensaje = "La venta ha sido registrada correctamente.<br><br>
                     <strong>Detalles:</strong><br>
-                    • Venta ID: <strong>#$id_venta</strong><br>
+                    • Venta ID: <strong>#$id_venta</strong>$infoNumero<br>
                     • Cliente: <strong>$nombreCliente</strong><br>
                     • Subtotal: <strong>₲ " . number_format($subtotal, 0, ',', '.') . "</strong><br>
-                    • Descuento: <strong>₲ " . number_format($descuento, 0, ',', '.') . "</strong><br>
-                    • Total: <strong>₲ " . number_format($total_venta, 0, ',', '.') . "</strong><br>
-                    • Condición: <strong>$condicion_venta</strong>$cuotasInfo<br>
+                    • IVA (10% - Informativo): <strong>₲ " . number_format($iva_informativo, 0, ',', '.') . "</strong><br>
+                    • <strong style='font-size: 1.1rem;'>Total: ₲ " . number_format($total_venta, 0, ',', '.') . "</strong><br>
+                    • Condición: <strong>$condicion_venta</strong><br>
                     • Productos: <strong>$cantidadProductos</strong><br>
-                    • Servicios: <strong>$cantidadServicios</strong><br>
+                    • Servicios: <strong>$cantidadServicios</strong><br><br>
+                    <strong>Acciones realizadas:</strong><br>
                     • Stock actualizado automáticamente ✓<br>
-                    • Movimiento de caja registrado ✓";
+                    • Movimiento de caja registrado ✓<br>
+                    • Historial de stock actualizado ✓";
         $tipo = "success";
 
     } else {
@@ -278,13 +250,19 @@ try {
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/mensajes.css" rel="stylesheet">
     <style>
+        body {
+            background: #2c3e50 !important;
+        }
+        
         .main-content {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            background: #2c3e50 !important;
         }
+        
         .message-container {
             max-width: 820px;
             width: 100%;
@@ -294,20 +272,26 @@ try {
             color: white;
             text-align: center;
         }
+        
         .message-title {
             margin-top: 10px;
             margin-bottom: 12px;
             font-size: 1.6rem;
+            color: #f1c40f;
         }
+        
         .message-content {
             margin-bottom: 18px;
             text-align: left;
+            line-height: 1.6;
         }
+        
         .status-icon {
             font-size: 2.4rem;
             display: inline-block;
             margin-bottom: 6px;
         }
+        
         .button-group {
             display: flex;
             gap: 12px;
@@ -315,6 +299,7 @@ try {
             margin-top: 12px;
             flex-wrap: wrap;
         }
+        
         .action-button {
             padding: 10px 18px;
             border-radius: 8px;
@@ -328,10 +313,12 @@ try {
             transition: all 0.3s ease;
             display: inline-block;
         }
+        
         .action-button:hover {
             background: linear-gradient(45deg, #e67e22, #f39c12);
             transform: translateY(-2px);
         }
+        
         .secondary-button {
             padding: 10px 18px;
             border-radius: 8px;
@@ -344,10 +331,13 @@ try {
             transition: all 0.3s ease;
             display: inline-block;
         }
+        
         .secondary-button:hover {
             background: rgba(241, 196, 15, 0.15);
             border-color: #f1c40f;
+            color: white;
         }
+        
         .print-button {
             padding: 10px 18px;
             border-radius: 8px;
@@ -361,14 +351,10 @@ try {
             transition: all 0.3s ease;
             display: inline-block;
         }
+        
         .print-button:hover {
             background: linear-gradient(45deg, #2980b9, #3498db);
             transform: translateY(-2px);
-        }
-        .print-button:disabled {
-            background: rgba(128, 128, 128, 0.5);
-            cursor: not-allowed;
-            opacity: 0.5;
         }
     </style>
 </head>
@@ -398,8 +384,8 @@ try {
             if (tipo === 'success' && idVenta) {
                 // Botón de imprimir (solo si hay tipo de comprobante seleccionado)
                 if (tipoComprobante) {
-                    var labelImpresion = tipoComprobante === 'FACTURA' ? 'Imprimir Factura' : 'Imprimir Recibo';
-                    botonesHTML += "<button class='print-button' onclick=\"imprimirComprobante(" + idVenta + ", '" + tipoComprobante + "')\">🖨️ " + labelImpresion + "</button>";
+                    var labelImpresion = tipoComprobante === 'FACTURA' ? '🖨️ Imprimir Factura' : '🖨️ Imprimir Ticket';
+                    botonesHTML += "<button class='print-button' onclick=\"imprimirComprobante(" + idVenta + ", '" + tipoComprobante + "')\">" + labelImpresion + "</button>";
                 }
                 
                 botonesHTML += "<a href='./listado_ventas.php' class='action-button'>📋 Ver Listado de Ventas</a>";
@@ -428,7 +414,6 @@ try {
                 return;
             }
             
-            // Abre en una nueva ventana el archivo de impresión
             var url = './imprimir_comprobante.php?id_venta=' + idVenta + '&tipo=' + tipoComprobante;
             window.open(url, '_blank', 'width=900,height=700');
         }

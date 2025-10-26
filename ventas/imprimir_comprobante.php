@@ -33,44 +33,35 @@ $sentenciaDetalle = $conexion->prepare("
 $sentenciaDetalle->execute([$id_venta]);
 $detalles = $sentenciaDetalle->fetchAll(PDO::FETCH_OBJ);
 
-// Calcular totales (el IVA YA ESTÁ INCLUIDO en los precios)
 $subtotal = floatval($venta->subtotal);
 $descuento = floatval($venta->descuento);
 $total_a_pagar = floatval($venta->total_venta);
 
 // IVA es INFORMATIVO (Paraguay: total / 11)
+$iva_10 = $total_a_pagar / 11;
 $gravadas_10 = $total_a_pagar;
-$iva_10 = $total_a_pagar / 11; // Solo para mostrar, NO se suma
 $exentas = 0;
-$gravadas_5 = 0;
-$iva_5 = 0;
-$total_iva = $iva_10 + $iva_5;
 
 $fecha_hora = date('d/m/Y H:i:s', strtotime($venta->fecha_venta));
 $cliente_nombre = trim($venta->nombre_cliente) ?: 'CLIENTE GENÉRICO';
 $cliente_ruc = $venta->ci_ruc_cliente ?: 'S/N';
+$numero_comprobante = $venta->numero_venta ?: str_pad($id_venta, 7, '0', STR_PAD_LEFT);
 
-// Determinar condición de venta para mostrar
-$condicion_mostrar = 'CONTADO';
-if ($venta->condicion_venta === 'CREDITO' || $venta->forma_pago === 'TARJETA' || $venta->forma_pago === 'FIADO') {
-    $condicion_mostrar = 'CREDITO';
-}
+$condicion_mostrar = $venta->condicion_venta === 'CREDITO' ? 'CREDITO' : 'CONTADO';
 
-// Función para convertir número a letras (Paraguay - Guaraníes)
+// Función para convertir número a letras
 function numeroALetras($numero) {
     $numero = intval($numero);
-    
-    $unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
-    $decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
-    $especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
-    $centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-    
     if ($numero == 0) return 'CERO GUARANIES';
     if ($numero == 100) return 'CIEN GUARANIES';
     
+    $unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    $decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    $especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISEIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+    $centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+    
     $letras = '';
     
-    // Millones
     if ($numero >= 1000000) {
         $millones = intval($numero / 1000000);
         if ($millones == 1) {
@@ -81,7 +72,6 @@ function numeroALetras($numero) {
         $numero %= 1000000;
     }
     
-    // Miles
     if ($numero >= 1000) {
         $miles = intval($numero / 1000);
         if ($miles == 1) {
@@ -92,7 +82,6 @@ function numeroALetras($numero) {
         $numero %= 1000;
     }
     
-    // Centenas, decenas y unidades
     if ($numero > 0) {
         $letras .= numeroALetrasBasico($numero);
     }
@@ -109,9 +98,7 @@ function numeroALetrasBasico($numero) {
     $letras = '';
     
     if ($numero >= 100) {
-        if ($numero == 100) {
-            return 'CIEN';
-        }
+        if ($numero == 100) return 'CIEN';
         $letras .= $centenas[intval($numero / 100)] . ' ';
         $numero %= 100;
     }
@@ -140,7 +127,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $tipo; ?> #<?php echo str_pad($id_venta, 7, '0', STR_PAD_LEFT); ?></title>
+    <title><?php echo $tipo; ?> #<?php echo $numero_comprobante; ?></title>
     <style>
         * {
             margin: 0;
@@ -158,7 +145,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
             font-size: 8px;
             line-height: 1.2;
             color: #000;
-            background: #f0f0f0;
+            background: #2c3e50;
         }
 
         /* Vista previa en pantalla - centrada y más grande */
@@ -174,7 +161,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
             .container {
                 width: 5.1cm;
                 background: white;
-                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+                box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
                 transform: scale(1.8);
                 transform-origin: top center;
                 margin-top: 50px;
@@ -268,6 +255,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
             text-align: right;
             word-wrap: break-word;
             line-height: 1.2;
+            white-space: normal;
         }
 
         .tabla-productos {
@@ -300,6 +288,9 @@ $total_en_letras = numeroALetras($total_a_pagar);
             width: 15%;
             text-align: center;
         }
+        .col-precio-uni { 
+            width: 16%; 
+            text-align: right; }
 
         .col-precio {
             width: 20%;
@@ -338,19 +329,23 @@ $total_en_letras = numeroALetras($total_a_pagar);
             position: fixed;
             top: 10px;
             right: 10px;
-            background: #27ae60;
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             z-index: 1000;
             font-size: 14px;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            transition: all 0.3s ease;
         }
 
         .btn-imprimir:hover {
-            background: #2ecc71;
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.6);
         }
     </style>
 </head>
@@ -388,7 +383,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
 
             <div class="fila">
                 <div class="fila-label">Factura <?php echo $condicion_mostrar; ?> N°:</div>
-                <div class="fila-valor bold">001-001-<?php echo str_pad($id_venta, 7, '0', STR_PAD_LEFT); ?></div>
+                <div class="fila-valor bold"><?php echo $numero_comprobante; ?></div>
             </div>
             <div class="fila">
                 <div class="fila-label">Condición:</div>
@@ -413,6 +408,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
                 <div class="tabla-header">
                     <div class="col-descripcion">Descripción</div>
                     <div class="col-cant">Cant.</div>
+                    <div class="col-precio-uni">Precio uni.</div>
                     <div class="col-precio">Importe</div>
                     <div class="col-iva">IVA</div>
                 </div>
@@ -421,6 +417,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
                     <div class="tabla-row">
                         <div class="col-descripcion"><?php echo substr($item->descripcion, 0, 20); ?></div>
                         <div class="col-cant"><?php echo $item->cantidad; ?></div>
+                        <div class="col-precio-uni"><?php echo number_format($item->precio_unitario, 0, ',', '.'); ?></div>
                         <div class="col-precio"><?php echo number_format($item->subtotal, 0, ',', '.'); ?></div>
                         <div class="col-iva">10</div>
                     </div>
@@ -459,21 +456,9 @@ $total_en_letras = numeroALetras($total_a_pagar);
                     <div class="fila-label">GRAVADAS 10%:</div>
                     <div class="fila-valor"><?php echo number_format($gravadas_10, 0, ',', '.'); ?></div>
                 </div>
-                <div class="fila">
-                    <div class="fila-label">GRAVADAS 5%:</div>
-                    <div class="fila-valor"><?php echo number_format($gravadas_5, 0, ',', '.'); ?></div>
-                </div>
-                <div class="fila">
-                    <div class="fila-label">IVA 10%:</div>
-                    <div class="fila-valor"><?php echo number_format($iva_10, 0, ',', '.'); ?></div>
-                </div>
-                <div class="fila">
-                    <div class="fila-label">IVA 5%:</div>
-                    <div class="fila-valor"><?php echo number_format($iva_5, 0, ',', '.'); ?></div>
-                </div>
                 <div class="fila bold">
-                    <div class="fila-label">TOTAL IVA:</div>
-                    <div class="fila-valor"><?php echo number_format($total_iva, 0, ',', '.'); ?></div>
+                    <div class="fila-label">TOTAL IVA (Inform.):</div>
+                    <div class="fila-valor"><?php echo number_format($iva_10, 0, ',', '.'); ?></div>
                 </div>
             </div>
 
@@ -490,18 +475,23 @@ $total_en_letras = numeroALetras($total_a_pagar);
             <!-- TICKET -->
             <div class="header center">
                 <div class="empresa-nombre">MAGISTER OFFICE</div>
-                <div class="seccion-titulo">PRESUPUESTO</div>
+                <div class="empresa-info">CIBER - FOTOCOPIAS - LIBRERÍA</div>
+                <div class="seccion-titulo">RECIBO</div>
             </div>
 
             <div class="linea"></div>
 
             <div class="fila">
-                <div class="fila-label">Ticket:</div>
-                <div class="fila-valor bold"><?php echo str_pad($id_venta, 7, '0', STR_PAD_LEFT); ?></div>
+                <div class="fila-label">Ticket N°:</div>
+                <div class="fila-valor bold"><?php echo $numero_comprobante; ?></div>
             </div>
             <div class="fila">
                 <div class="fila-label">Fecha:</div>
                 <div class="fila-valor"><?php echo $fecha_hora; ?></div>
+            </div>
+            <div class="fila">
+                <div class="fila-label">Cliente:</div>
+                <div class="fila-valor"><?php echo substr($cliente_nombre, 0, 20); ?></div>
             </div>
 
             <div class="linea"></div>
@@ -510,6 +500,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
                 <div class="tabla-header">
                     <div class="col-descripcion">Descripción</div>
                     <div class="col-cant">Cant.</div>
+                    <div class="col-precio-uni">Precio uni.</div>
                     <div class="col-precio">Importe</div>
                 </div>
 
@@ -517,6 +508,7 @@ $total_en_letras = numeroALetras($total_a_pagar);
                     <div class="tabla-row">
                         <div class="col-descripcion"><?php echo substr($item->descripcion, 0, 22); ?></div>
                         <div class="col-cant"><?php echo $item->cantidad; ?></div>
+                        <div class="col-precio-uni"><?php echo number_format($item->precio_unitario, 0, ',', '.'); ?></div>
                         <div class="col-precio"><?php echo number_format($item->subtotal, 0, ',', '.'); ?></div>
                     </div>
                 <?php endforeach; ?>
@@ -524,15 +516,28 @@ $total_en_letras = numeroALetras($total_a_pagar);
 
             <div class="linea"></div>
 
-            <div class="fila total-principal">
-                <div class="fila-label">TOTAL:</div>
-                <div class="fila-valor"><?php echo number_format($total_a_pagar, 0, ',', '.'); ?></div>
+            <div class="totales">
+                <div class="fila">
+                    <div class="fila-label">Subtotal:</div>
+                    <div class="fila-valor"><?php echo number_format($subtotal, 0, ',', '.'); ?></div>
+                </div>
+                <div class="fila total-principal">
+                    <div class="fila-label">TOTAL:</div>
+                    <div class="fila-valor"><?php echo number_format($total_a_pagar, 0, ',', '.'); ?></div>
+                </div>
+                <div class="fila" style="font-size: 6px; margin-top: 2px;">
+                    <div class="fila-label">IVA Incluido (10%):</div>
+                    <div class="fila-valor"><?php echo number_format($iva_10, 0, ',', '.'); ?></div>
+                </div>
             </div>
 
             <div class="linea"></div>
 
             <div class="pie center">
                 GRACIAS POR SU PREFERENCIA
+            </div>
+            <div class="pie center">
+                Tel: 0972-617447
             </div>
 
         <?php endif; ?>

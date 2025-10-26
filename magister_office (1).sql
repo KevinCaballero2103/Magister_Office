@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 19, 2025 at 11:10 PM
+-- Generation Time: Oct 23, 2025 at 11:57 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.26
 
@@ -53,9 +53,13 @@ INSERT INTO `caja` (`id`, `tipo_movimiento`, `categoria`, `id_referencia`, `conc
 (7, 'EGRESO', 'COMPRA', 7, 'COMPRA #7 - OFIMARKET', 3250000.00, '2025-10-09', NULL, '2025-10-09 19:53:54'),
 (9, 'EGRESO', 'COMPRA', 9, 'COMPRA #9 - ALAMO2', 3040000.00, '2025-10-12', NULL, '2025-10-12 00:44:06'),
 (13, 'EGRESO', 'COMPRA', 18, 'COMPRA #18 - ALAMO ORIGI', 20000.00, '2025-10-15', NULL, '2025-10-15 00:49:36'),
-(14, 'INGRESO', 'VENTA', 3, 'VENTA #3 - PRUEBA4 DFFSFDSS (Ticket: 4356879)', 560000.00, '2025-10-13', NULL, '2025-10-15 19:56:31'),
 (15, 'INGRESO', 'VENTA', 4, 'VENTA #4 - KEVIN SEBASTIAN CABALLERO GODOY', 3000.00, '2025-10-16', NULL, '2025-10-15 19:57:08'),
-(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45');
+(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45'),
+(18, 'INGRESO', 'VENTA', 5, 'VENTA #5 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000001)', 275000.00, '2025-10-19', NULL, '2025-10-19 23:15:33'),
+(19, 'INGRESO', 'VENTA', 6, 'VENTA #6 - KEVIN SEBASTIAN CABALLERO GODOY', 66000.00, '2025-10-22', NULL, '2025-10-22 00:39:29'),
+(20, 'INGRESO', 'VENTA', 7, 'VENTA #7 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000007)', 746075.00, '2025-10-22', NULL, '2025-10-22 21:15:59'),
+(21, 'INGRESO', 'VENTA', 8, 'VENTA #8 - KEVIN SEBASTIAN CABALLERO GODOY', 550000.00, '2025-10-22', NULL, '2025-10-22 21:17:48'),
+(23, 'INGRESO', 'VENTA', 10, 'VENTA #10 - KEVIN SEBASTIAN CABALLERO GODOY (FACTURA: 001-001-0000835)', 3000.00, '2025-10-23', NULL, '2025-10-23 22:56:26');
 
 -- --------------------------------------------------------
 
@@ -158,6 +162,32 @@ CREATE TABLE `cuotas_venta` (
   `fecha_pago` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `cuotas_venta`
+--
+
+INSERT INTO `cuotas_venta` (`id`, `id_venta`, `numero`, `monto`, `fecha_vencimiento`, `estado`, `fecha_pago`) VALUES
+(1, 5, 1, 55000.00, '2026-02-28', 'PENDIENTE', NULL),
+(2, 5, 2, 55000.00, '2026-03-30', 'PENDIENTE', NULL),
+(3, 5, 3, 55000.00, '2026-04-29', 'PENDIENTE', NULL),
+(4, 5, 4, 55000.00, '2026-05-29', 'PENDIENTE', NULL),
+(5, 5, 5, 55000.00, '2026-06-28', 'PENDIENTE', NULL),
+(6, 7, 1, 62172.92, '2025-10-26', 'PENDIENTE', NULL),
+(7, 7, 2, 62172.92, '2025-11-25', 'PENDIENTE', NULL),
+(8, 7, 3, 62172.92, '2025-12-25', 'PENDIENTE', NULL),
+(9, 7, 4, 62172.92, '2026-01-24', 'PENDIENTE', NULL),
+(10, 7, 5, 62172.92, '2026-02-23', 'PENDIENTE', NULL),
+(11, 7, 6, 62172.92, '2026-03-25', 'PENDIENTE', NULL),
+(12, 7, 7, 62172.92, '2026-04-24', 'PENDIENTE', NULL),
+(13, 7, 8, 62172.92, '2026-05-24', 'PENDIENTE', NULL),
+(14, 7, 9, 62172.92, '2026-06-23', 'PENDIENTE', NULL),
+(15, 7, 10, 62172.92, '2026-07-23', 'PENDIENTE', NULL),
+(16, 7, 11, 62172.92, '2026-08-22', 'PENDIENTE', NULL),
+(17, 7, 12, 62172.92, '2026-09-21', 'PENDIENTE', NULL),
+(18, 8, 1, 183333.33, '2025-10-23', 'PENDIENTE', NULL),
+(19, 8, 2, 183333.33, '2025-11-22', 'PENDIENTE', NULL),
+(20, 8, 3, 183333.33, '2025-12-22', 'PENDIENTE', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -224,7 +254,20 @@ INSERT INTO `detalle_ventas` (`id`, `id_venta`, `tipo_item`, `id_item`, `descrip
 (6, 3, 'PRODUCTO', 2, 'RESMA A4', NULL, 10, 50000.00, 10.00, 0.00, 0.00, 500000.00),
 (7, 3, 'PRODUCTO', 3, 'RESMA A5+', NULL, 1, 30000.00, 10.00, 0.00, 0.00, 30000.00),
 (8, 3, 'SERVICIO', 14, 'MANTENIMIENTO DE LAPTOP', NULL, 1, 30000.00, 10.00, 0.00, 0.00, 30000.00),
-(9, 4, 'PRODUCTO', 5, 'BORRADOR', NULL, 1, 3000.00, 10.00, 0.00, 0.00, 3000.00);
+(9, 4, 'PRODUCTO', 5, 'BORRADOR', NULL, 1, 3000.00, 10.00, 0.00, 0.00, 3000.00),
+(10, 5, 'PRODUCTO', 6, 'REGLA 30CM', NULL, 50, 5000.00, 10.00, 0.00, 0.00, 250000.00),
+(11, 6, 'PRODUCTO', 6, 'REGLA 30CM', NULL, 10, 5000.00, 10.00, 0.00, 0.00, 50000.00),
+(12, 6, 'SERVICIO', 16, 'IMPRESIóN A COLOR', NULL, 10, 1000.00, 10.00, 0.00, 0.00, 10000.00),
+(13, 7, 'PRODUCTO', 1, 'BIROME BIC AZUL', NULL, 10, 3000.00, 10.00, 0.00, 0.00, 30000.00),
+(14, 7, 'PRODUCTO', 6, 'REGLA 30CM', NULL, 10, 5000.00, 10.00, 0.00, 0.00, 50000.00),
+(15, 7, 'PRODUCTO', 5, 'BORRADOR', NULL, 9, 3000.00, 10.00, 0.00, 0.00, 27000.00),
+(16, 7, 'PRODUCTO', 2, 'RESMA A4', NULL, 10, 50000.00, 10.00, 0.00, 0.00, 500000.00),
+(17, 7, 'SERVICIO', 17, 'FOTOCOPIAS', NULL, 165, 250.00, 10.00, 0.00, 0.00, 41250.00),
+(18, 7, 'SERVICIO', 16, 'IMPRESIóN A COLOR', NULL, 15, 2000.00, 10.00, 0.00, 0.00, 30000.00),
+(19, 8, 'SERVICIO', 15, 'MANTENIMIENTO DE PC DE ESCRITORIO', NULL, 1, 500000.00, 10.00, 0.00, 0.00, 500000.00),
+(20, 9, 'PRODUCTO', 6, 'REGLA 30CM', NULL, 10, 5000.00, 10.00, 0.00, 0.00, 50000.00),
+(21, 9, 'SERVICIO', 16, 'IMPRESIóN A COLOR', NULL, 1, 1000.00, 10.00, 0.00, 0.00, 1000.00),
+(22, 10, 'PRODUCTO', 1, 'BIROME BIC AZUL', NULL, 1, 3000.00, 10.00, 0.00, 0.00, 3000.00);
 
 -- --------------------------------------------------------
 
@@ -282,7 +325,18 @@ INSERT INTO `historial_stock` (`id`, `id_producto`, `tipo_movimiento`, `cantidad
 (31, 6, 'AJUSTE', 2, 200, 202, 'AJUSTE COMPRA #19: +2 unidades (nuevo)', 19, '2025-10-19 19:45:24'),
 (32, 5, 'AJUSTE', 2, 121, 119, 'AJUSTE COMPRA #19: -2 unidades', 19, '2025-10-19 19:46:12'),
 (33, 6, 'AJUSTE', 2, 202, 200, 'AJUSTE COMPRA #19: -2 unidades (eliminado)', 19, '2025-10-19 19:46:12'),
-(34, 5, 'SALIDA', 20, 119, 99, 'ELIMINACIÓN COMPRA #19', 19, '2025-10-19 19:46:20');
+(34, 5, 'SALIDA', 20, 119, 99, 'ELIMINACIÓN COMPRA #19', 19, '2025-10-19 19:46:20'),
+(35, 6, 'SALIDA', 50, 200, 150, 'VENTA #5', 5, '2025-10-19 23:15:33'),
+(36, 6, 'SALIDA', 10, 150, 140, 'VENTA #6', 6, '2025-10-22 00:39:29'),
+(37, 2, 'ENTRADA', 10, 340, 350, 'ANULACIÓN VENTA #3', 3, '2025-10-22 21:11:21'),
+(38, 3, 'ENTRADA', 1, 420, 421, 'ANULACIÓN VENTA #3', 3, '2025-10-22 21:11:21'),
+(39, 1, 'SALIDA', 10, 40, 30, 'VENTA #7', 7, '2025-10-22 21:15:59'),
+(40, 6, 'SALIDA', 10, 140, 130, 'VENTA #7', 7, '2025-10-22 21:15:59'),
+(41, 5, 'SALIDA', 9, 99, 90, 'VENTA #7', 7, '2025-10-22 21:15:59'),
+(42, 2, 'SALIDA', 10, 350, 340, 'VENTA #7', 7, '2025-10-22 21:15:59'),
+(43, 6, 'SALIDA', 10, 130, 120, 'VENTA #9', 9, '2025-10-23 22:55:29'),
+(44, 1, 'SALIDA', 1, 30, 29, 'VENTA #10', 10, '2025-10-23 22:56:26'),
+(45, 6, 'ENTRADA', 10, 120, 130, 'ANULACIÓN VENTA #9', 9, '2025-10-23 23:05:20');
 
 -- --------------------------------------------------------
 
@@ -346,11 +400,11 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre_producto`, `codigo_producto`, `precio_venta`, `stock_actual`, `stock_minimo`, `estado_producto`, `fecha_registro`) VALUES
-(1, 'BIROME BIC AZUL', '', 3000.00, 40, 10, 1, '2025-09-24 20:39:01'),
+(1, 'BIROME BIC AZUL', '', 3000.00, 29, 10, 1, '2025-09-24 20:39:01'),
 (2, 'RESMA A4', '2343342432', 50000.00, 340, 10, 1, '2025-09-25 21:51:26'),
-(3, 'RESMA A5+', '23456787654', 30000.00, 420, 20, 1, '2025-09-30 21:42:56'),
-(5, 'BORRADOR', '4353456789', 3000.00, 99, 5, 1, '2025-10-15 00:20:00'),
-(6, 'REGLA 30CM', '3456734567', 5000.00, 200, 5, 1, '2025-10-19 15:19:28');
+(3, 'RESMA A5+', '23456787654', 30000.00, 421, 20, 1, '2025-09-30 21:42:56'),
+(5, 'BORRADOR', '4353456789', 3000.00, 90, 5, 1, '2025-10-15 00:20:00'),
+(6, 'REGLA 30CM', '3456734567', 5000.00, 130, 5, 1, '2025-10-19 15:19:28');
 
 -- --------------------------------------------------------
 
@@ -443,6 +497,7 @@ CREATE TABLE `servicios` (
   `id` int NOT NULL,
   `nombre_servicio` varchar(200) NOT NULL,
   `categoria_servicio` varchar(200) NOT NULL,
+  `precio_sugerido` decimal(10,2) DEFAULT '0.00',
   `estado_servicio` tinyint(1) DEFAULT '1',
   `fecha_ingreso` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -451,10 +506,12 @@ CREATE TABLE `servicios` (
 -- Dumping data for table `servicios`
 --
 
-INSERT INTO `servicios` (`id`, `nombre_servicio`, `categoria_servicio`, `estado_servicio`, `fecha_ingreso`) VALUES
-(13, 'MANTENIMIENTO DE IMPRESORA', 'MATEMATICA', 1, '2025-10-08 18:56:54'),
-(14, 'MANTENIMIENTO DE LAPTOP', 'MATEMATICA', 1, '2025-10-08 20:17:21'),
-(15, 'MANTENIMIENTO DE PC DE ESCRITORIO', 'MANTENIMIENTO', 1, '2025-10-19 18:52:54');
+INSERT INTO `servicios` (`id`, `nombre_servicio`, `categoria_servicio`, `precio_sugerido`, `estado_servicio`, `fecha_ingreso`) VALUES
+(13, 'MANTENIMIENTO DE IMPRESORA', 'MATEMATICA', 0.00, 1, '2025-10-08 18:56:54'),
+(14, 'MANTENIMIENTO DE LAPTOP', 'MATEMATICA', 0.00, 1, '2025-10-08 20:17:21'),
+(15, 'MANTENIMIENTO DE PC DE ESCRITORIO', 'MANTENIMIENTO', 0.00, 1, '2025-10-19 18:52:54'),
+(16, 'IMPRESIóN A COLOR', 'IMPRESIONES', 1000.00, 1, '2025-10-20 22:17:56'),
+(17, 'FOTOCOPIAS', 'IMPRESION', 250.00, 1, '2025-10-20 22:23:14');
 
 -- --------------------------------------------------------
 
@@ -471,6 +528,8 @@ CREATE TABLE `ventas` (
   `numero_venta` varchar(50) DEFAULT NULL COMMENT 'Número de factura/ticket',
   `condicion_venta` enum('CONTADO','CREDITO') NOT NULL DEFAULT 'CONTADO',
   `forma_pago` varchar(50) DEFAULT 'CONTADO',
+  `cuotas` int DEFAULT '1',
+  `fecha_vencimiento_primera` date DEFAULT NULL,
   `fecha_venta` date NOT NULL,
   `subtotal` decimal(10,2) NOT NULL DEFAULT '0.00',
   `descuento` decimal(10,2) NOT NULL DEFAULT '0.00',
@@ -486,11 +545,17 @@ CREATE TABLE `ventas` (
 -- Dumping data for table `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `id_cliente`, `es_factura_legal`, `tipo_comprobante`, `serie`, `numero_venta`, `condicion_venta`, `forma_pago`, `fecha_venta`, `subtotal`, `descuento`, `iva_total`, `usuario_id`, `total_venta`, `observaciones`, `estado_venta`, `fecha_registro`) VALUES
-(1, 3, 0, NULL, NULL, '234567234', 'CONTADO', 'CONTADO', '2025-10-12', 48000.00, 0.00, 0.00, NULL, 48000.00, '', 0, '2025-10-12 18:39:35'),
-(2, 3, 0, NULL, NULL, '324456778965', 'CONTADO', 'CONTADO', '2025-10-13', 430000.00, 0.00, 0.00, NULL, 430000.00, '', 0, '2025-10-14 02:03:30'),
-(3, 5, 0, NULL, NULL, '4356879', 'CONTADO', 'CONTADO', '2025-10-13', 560000.00, 0.00, 0.00, NULL, 560000.00, '', 1, '2025-10-15 19:56:31'),
-(4, 1, 0, NULL, NULL, NULL, 'CONTADO', 'CONTADO', '2025-10-16', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-15 19:57:08');
+INSERT INTO `ventas` (`id`, `id_cliente`, `es_factura_legal`, `tipo_comprobante`, `serie`, `numero_venta`, `condicion_venta`, `forma_pago`, `cuotas`, `fecha_vencimiento_primera`, `fecha_venta`, `subtotal`, `descuento`, `iva_total`, `usuario_id`, `total_venta`, `observaciones`, `estado_venta`, `fecha_registro`) VALUES
+(1, 3, 0, NULL, NULL, '234567234', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-12', 48000.00, 0.00, 0.00, NULL, 48000.00, '', 0, '2025-10-12 18:39:35'),
+(2, 3, 0, NULL, NULL, '324456778965', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13', 430000.00, 0.00, 0.00, NULL, 430000.00, '', 0, '2025-10-14 02:03:30'),
+(3, 5, 0, NULL, NULL, '4356879', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13', 560000.00, 0.00, 0.00, NULL, 560000.00, '', 0, '2025-10-15 19:56:31'),
+(4, 1, 0, NULL, NULL, NULL, 'CONTADO', 'CONTADO', 1, NULL, '2025-10-16', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-15 19:57:08'),
+(5, 1, 0, 'TICKET', NULL, '0000001', 'CREDITO', 'CONTADO', 5, '2026-02-28', '2025-10-19', 250000.00, 0.00, 0.00, NULL, 275000.00, '', 1, '2025-10-19 23:15:33'),
+(6, 3, 1, 'FACTURA', NULL, NULL, 'CONTADO', 'CONTADO', NULL, NULL, '2025-10-22', 60000.00, 0.00, 0.00, NULL, 66000.00, '', 1, '2025-10-22 00:39:29'),
+(7, 1, 0, 'TICKET', NULL, '0000007', 'CREDITO', 'TARJETA', 12, '2025-10-26', '2025-10-22', 678250.00, 0.00, 0.00, NULL, 746075.00, '', 1, '2025-10-22 21:15:59'),
+(8, 1, 1, 'FACTURA', NULL, NULL, 'CREDITO', 'TRANSFERENCIA', 3, '2025-10-23', '2025-10-22', 500000.00, 0.00, 0.00, NULL, 550000.00, '', 1, '2025-10-22 21:17:48'),
+(9, 3, 0, 'TICKET', NULL, '0000009', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23', 51000.00, 0.00, 0.00, NULL, 51000.00, '', 0, '2025-10-23 22:55:29'),
+(10, 3, 0, 'FACTURA', NULL, '001-001-0000835', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-23 22:56:26');
 
 -- --------------------------------------------------------
 
@@ -683,7 +748,7 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT for table `caja`
 --
 ALTER TABLE `caja`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `clientes`
@@ -707,7 +772,7 @@ ALTER TABLE `cuentas_corrientes`
 -- AUTO_INCREMENT for table `cuotas_venta`
 --
 ALTER TABLE `cuotas_venta`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `detalle_compras`
@@ -719,13 +784,13 @@ ALTER TABLE `detalle_compras`
 -- AUTO_INCREMENT for table `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `historial_stock`
 --
 ALTER TABLE `historial_stock`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `pagos_compra`
@@ -767,13 +832,13 @@ ALTER TABLE `series_comprobantes`
 -- AUTO_INCREMENT for table `servicios`
 --
 ALTER TABLE `servicios`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 -- --------------------------------------------------------
 
