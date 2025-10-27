@@ -16,7 +16,6 @@ function getCurrentModule($currentDir, $currentPage) {
     if ($currentDir === 'compras') return 'Compras';
     if ($currentDir === 'ventas') return 'Ventas';
     if ($currentDir === 'caja') return 'Caja';
-    if ($currentDir === 'facturar') return 'Facturar';
     if ($currentDir === 'auditoria') return 'Auditoría';
     return 'Sistema';
 }
@@ -178,28 +177,14 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                         </svg>
                     </div>
                     <div class="submenu">
+                        <a href="<?php echo $prefix; ?>caja/abrir_caja.php" class="submenu-item">Abrir Caja</a>
+                        <a href="<?php echo $prefix; ?>caja/cerrar_caja.php" class="submenu-item">Cerrar Caja</a>
                         <a href="<?php echo $prefix; ?>caja/balance.php" class="submenu-item">Balance General</a>
                         <a href="<?php echo $prefix; ?>caja/registrar_movimiento.php" class="submenu-item">Registrar Movimiento</a>
                         <a href="<?php echo $prefix; ?>caja/historial_movimientos.php" class="submenu-item">Historial</a>
                     </div>
                 </div>
 
-                <!-- Facturar -->
-                <div class="nav-item">
-                    <div class="nav-link" onclick="toggleSubmenu(this)">
-                        <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"/>
-                        </svg>
-                        <span class="nav-text">Facturar</span>
-                        <svg class="nav-arrow" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 12l-4-4h8l-4 4z"/>
-                        </svg>
-                    </div>
-                    <div class="submenu">
-                        <a href="<?php echo $prefix; ?>facturar/crear_factura.php" class="submenu-item">Crear Factura</a>
-                        <a href="<?php echo $prefix; ?>facturar/historial_facturas.php" class="submenu-item">Historial</a>
-                    </div>
-                </div>
 
                 <!-- Auditoría -->
                 <div class="nav-item">
