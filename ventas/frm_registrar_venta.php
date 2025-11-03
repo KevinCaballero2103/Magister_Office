@@ -111,6 +111,8 @@ $FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
                             <div id="num-prev" style="display:none;"><div class="numero-preview"><div class="numero-preview-text" id="num-prev-txt"></div></div></div>
                         </div>
                         <div class="field"><label class="label">Condición</label><select name="condicion_venta" id="condicion_venta" class="input"><option value="CONTADO">CONTADO</option><option value="CREDITO">CRÉDITO</option></select></div>
+                        <div class="field" id="campo-cuotas" style="display: none;"><label class="label">Cuotas</label><input type="number" min="1" class="input" name="cuotas" id="cuotas" placeholder="Ej: 3, 6, 12"></div>
+                        <div class="field" id="campo-fecha-venc" style="display: none;"><label class="label">Vencimiento 1ra Cuota</label><input type="date" class="input" name="fecha_vencimiento_primera" id="fecha_vencimiento_primera"></div>
                         <div class="field"><label class="label">Forma pago</label><select name="forma_pago" id="forma_pago" class="input"><option value="CONTADO">Contado</option><option value="FIADO">Fiado</option><option value="TARJETA">Tarjeta</option><option value="TRANSFERENCIA">Transferencia</option></select></div>
                         <div class="field"><label class="label">Observaciones</label><textarea class="textarea" name="observaciones" id="observaciones" rows="2"></textarea></div>
                     </div>
@@ -374,7 +376,7 @@ $FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
         }
 
         // Calcular vuelto en tiempo real
-        function calcularVuelto() {
+        window.calcularVuelto = function() {
             const total = parseFloat($('inp-tot').value) || 0;
             const recibidoInput = $('dinero-recibido');
             const recibido = recibidoInput ? parseFloat(recibidoInput.value) || 0 : 0;
@@ -393,7 +395,7 @@ $FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
                 vueltoDisplay.textContent = '₲ ' + vuelto.toLocaleString('es-PY', {minimumFractionDigits:2});
                 vueltoDisplay.style.color = '#2ecc71';
             }
-        }
+        };
 
         // Preview numeración
         $('tipo_comprobante').onchange = function() {
@@ -416,6 +418,23 @@ $FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
             }
         };
 
+        // Mostrar/ocultar campos de crédito
+        $('condicion_venta').onchange = function() {
+            const esCredito = this.value === 'CREDITO';
+            $('campo-cuotas').style.display = esCredito ? 'block' : 'none';
+            $('campo-fecha-venc').style.display = esCredito ? 'block' : 'none';
+            
+            if (esCredito) {
+                $('cuotas').required = true;
+                $('fecha_vencimiento_primera').required = true;
+            } else {
+                $('cuotas').required = false;
+                $('fecha_vencimiento_primera').required = false;
+                $('cuotas').value = '';
+                $('fecha_vencimiento_primera').value = '';
+            }
+        };
+
         window.validateForm = () => {
             if (selectedItems.length === 0) return alert('❌ Agrega al menos un item'), false;
             const tipo = $('tipo_comprobante').value;
@@ -423,6 +442,23 @@ $FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
                 $('cliente_ruc_ci').focus();
                 return alert('❌ RUC/CI obligatorio para FACTURA'), false;
             }
+            
+            // Validar campos de crédito
+            if ($('condicion_venta').value === 'CREDITO') {
+                const cuotas = parseInt($('cuotas').value);
+                const fechaVenc = $('fecha_vencimiento_primera').value;
+                
+                if (!cuotas || cuotas < 1) {
+                    $('cuotas').focus();
+                    return alert('❌ Ingresa número de cuotas válido'), false;
+                }
+                
+                if (!fechaVenc) {
+                    $('fecha_vencimiento_primera').focus();
+                    return alert('❌ Ingresa fecha de vencimiento de la primera cuota'), false;
+                }
+            }
+            
             calcTotales();
             return confirm('✅ ¿Confirmar venta?\n\nSe actualizará el stock automáticamente.');
         };

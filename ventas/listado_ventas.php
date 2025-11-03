@@ -27,10 +27,10 @@ if ($condicion !== "todos") {
 }
 
 if (!empty($fecha_desde)) {
-    $condiciones[] = "v.fecha_venta >= '$fecha_desde'";
+    $condiciones[] = "DATE(v.fecha_venta) >= '$fecha_desde'";
 }
 if (!empty($fecha_hasta)) {
-    $condiciones[] = "v.fecha_venta <= '$fecha_hasta'";
+    $condiciones[] = "DATE(v.fecha_venta) <= '$fecha_hasta'";
 }
 
 $where_clause = "";
@@ -61,7 +61,7 @@ switch ($orden) {
 
 $sentencia = $conexion->prepare("
     SELECT v.*, 
-           CONCAT(c.nombre_cliente, ' ', c.apellido_cliente) as nombre_cliente
+           CONCAT(COALESCE(c.nombre_cliente, ''), ' ', COALESCE(c.apellido_cliente, '')) as nombre_cliente
     FROM ventas v
     LEFT JOIN clientes c ON v.id_cliente = c.id
     $where_clause
@@ -208,6 +208,30 @@ $clientesJSON = json_encode($clientes);
             color: white;
         }
 
+        .comprobante-badge {
+            padding: 3px 6px;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .comprobante-factura {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .comprobante-ticket {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+
+        .comprobante-ninguno {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+        }
+
         .imprimir-link, .anular-link {
             color: white !important;
             font-weight: bold;
@@ -226,6 +250,7 @@ $clientesJSON = json_encode($clientes);
 
         .anular-link:hover {
             background: linear-gradient(45deg, #d35400, #e67e22) !important;
+            transform: translateY(-2px);
         }
 
         .imprimir-link {
@@ -234,6 +259,7 @@ $clientesJSON = json_encode($clientes);
 
         .imprimir-link:hover {
             background: linear-gradient(45deg, #2980b9, #3498db) !important;
+            transform: translateY(-2px);
         }
 
         .resumen-venta {
@@ -273,6 +299,26 @@ $clientesJSON = json_encode($clientes);
         .cuota-pagada {
             color: #27ae60;
         }
+        
+        .estado-activo {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .estado-anulado {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -297,9 +343,22 @@ $clientesJSON = json_encode($clientes);
                     var estadoText = venta.estado_venta == 1 ? 'ACTIVA' : 'ANULADA';
                     var condicionClass = venta.condicion_venta === 'CREDITO' ? 'condicion-credito' : 'condicion-contado';
                     
-                    var fecha = new Date(venta.fecha_venta + 'T00:00:00');
+                    // FIX: Formato correcto de fecha (sin agregar T00:00:00 si ya tiene hora)
+                    var fechaVenta = venta.fecha_venta;
+                    var fecha = fechaVenta.includes(':') ? new Date(fechaVenta) : new Date(fechaVenta + 'T00:00:00');
                     var fechaFormateada = fecha.toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    var nombreCliente = venta.nombre_cliente || 'Cliente Genérico';
+                    
+                    var nombreCliente = venta.nombre_cliente ? venta.nombre_cliente.trim() : 'Cliente Genérico';
+                    
+                    // Badge de tipo de comprobante
+                    var comprobanteBadge = '';
+                    if (venta.tipo_comprobante) {
+                        var claseComprobante = venta.tipo_comprobante === 'FACTURA' ? 'comprobante-factura' : 'comprobante-ticket';
+                        var iconoComprobante = venta.tipo_comprobante === 'FACTURA' ? '📄' : '🎫';
+                        comprobanteBadge = '<span class="comprobante-badge ' + claseComprobante + '">' + iconoComprobante + ' ' + venta.tipo_comprobante + '</span>';
+                    } else {
+                        comprobanteBadge = '<span class="comprobante-badge comprobante-ninguno">Sin comprobante</span>';
+                    }
                     
                     var detallesHTML = '';
                     var countProductos = 0;
@@ -339,17 +398,41 @@ $clientesJSON = json_encode($clientes);
                         cuotasHTML += '</div>';
                     }
                     
+                    // BOTONES DE ACCIÓN
                     var botonesAccion = '';
-                    if (venta.tipo_comprobante && venta.estado_venta == 1) {
+                    
+                    // IMPRIMIR: Disponible para TODAS las ventas con comprobante (activas Y anuladas)
+                    if (venta.tipo_comprobante) {
                         botonesAccion += '<a href="imprimir_comprobante.php?id_venta=' + venta.id + '&tipo=' + venta.tipo_comprobante + '" target="_blank" class="imprimir-link">🖨️ IMPRIMIR</a>';
                     }
                     
+                    // ANULAR: Solo para ventas ACTIVAS
                     if (venta.estado_venta == 1) {
-                        botonesAccion += '<a href="anular_venta.php?id=' + venta.id + '" class="anular-link" onclick="return confirm(\'⚠️ ¿Estás seguro de anular esta venta?\');"> ❌ ANULAR</a>';
+                        botonesAccion += '<a href="frm_confirmar_anulacion.php?id=' + venta.id + '" class="anular-link">❌ ANULAR</a>';
+                    }
+
+                    // Info de anulación (si está anulada)
+                    var infoAnulacion = '';
+                    if (venta.estado_venta == 0 && venta.fecha_anulacion) {
+                        var fechaAnul = venta.fecha_anulacion.includes(':') ? new Date(venta.fecha_anulacion) : new Date(venta.fecha_anulacion + 'T00:00:00');
+                        var fechaAnulStr = fechaAnul.toLocaleString('es-PY', {
+                            day: '2-digit',
+                            month: '2-digit', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        infoAnulacion = '<div style="background: rgba(231, 76, 60, 0.1); padding: 10px; border-radius: 6px; margin-top: 10px; border: 1px solid rgba(231, 76, 60, 0.3);">' +
+                            '<strong style="color: #e74c3c;">⚠️ VENTA ANULADA</strong><br>' +
+                            '<small style="color: rgba(255,255,255,0.8);">Fecha: ' + fechaAnulStr + '</small><br>' +
+                            (venta.usuario_anula ? '<small style="color: rgba(255,255,255,0.8);">Usuario: ' + venta.usuario_anula + '</small><br>' : '') +
+                            (venta.motivo_anulacion ? '<small style="color: rgba(255,255,255,0.8);">Motivo: ' + venta.motivo_anulacion + '</small>' : '') +
+                            '</div>';
                     }
 
                     ventasHTML += '<tr>' +
-                        '<td><strong>#' + venta.id + '</strong></td>' +
+                        '<td><strong>#' + venta.id + '</strong>' + comprobanteBadge + '</td>' +
                         '<td>' + fechaFormateada + '</td>' +
                         '<td>' + nombreCliente + '</td>' +
                         '<td><span class="condicion-badge condicion-' + venta.condicion_venta.toLowerCase() + '">' + venta.condicion_venta + '</span></td>' +
@@ -360,10 +443,12 @@ $clientesJSON = json_encode($clientes);
                         '<tr class="expandable-row" id="details-' + index + '">' +
                         '<td colspan="7">' +
                         '<div class="details-container">' +
-                        '<div class="details-title">Venta #' + venta.id + '</div>' +
+                        '<div class="details-title">Venta #' + venta.id + ' ' + (venta.tipo_comprobante ? '(' + venta.tipo_comprobante + ': ' + (venta.numero_venta || 'N/A') + ')' : '') + '</div>' +
                         '<div class="resumen-venta">' +
                         '<p><strong>Cliente:</strong> ' + nombreCliente + '</p>' +
                         '<p><strong>Fecha:</strong> ' + fechaFormateada + '</p>' +
+                        '<p><strong>Tipo Comprobante:</strong> ' + (venta.tipo_comprobante || 'Sin comprobante') + '</p>' +
+                        '<p><strong>Número:</strong> ' + (venta.numero_venta || 'N/A') + '</p>' +
                         '<p><strong>Condición:</strong> ' + venta.condicion_venta + '</p>' +
                         '<p><strong>Items:</strong> ' + (venta.detalles ? venta.detalles.length : 0) + ' (' + countProductos + ' productos, ' + countServicios + ' servicios)</p>' +
                         '<p><strong>Subtotal:</strong> ₲ ' + parseFloat(venta.subtotal).toLocaleString('es-PY', {minimumFractionDigits: 2}) + '</p>' +
@@ -371,6 +456,7 @@ $clientesJSON = json_encode($clientes);
                         '<p style="font-size: 1rem;"><strong>TOTAL:</strong> <strong style="color: #27ae60;">₲ ' + parseFloat(venta.total_venta).toLocaleString('es-PY', {minimumFractionDigits: 2}) + '</strong></p>' +
                         (venta.observaciones ? '<p><strong>Observaciones:</strong> ' + venta.observaciones + '</p>' : '') +
                         '</div>' +
+                        infoAnulacion +
                         cuotasHTML +
                         '<div style="margin-top: 15px;"><strong style="color: #f1c40f;">Items Vendidos:</strong></div>' +
                         '<table class="details-table" style="margin-top: 10px; width: 100%; border-radius: 8px; overflow: hidden;">' +
@@ -401,7 +487,7 @@ $clientesJSON = json_encode($clientes);
                 '<div class="search-field"><label>Hasta:</label><input type="date" name="fecha_hasta" class="search-input" value="<?php echo $fecha_hasta; ?>"></div>' +
                 '<div class="search-field"><label>Cliente:</label><div class="select"><select name="cliente" class="search-input">' + clientesOptions + '</select></div></div>' +
                 '<div class="search-field"><label>Condición:</label><div class="select"><select name="condicion" class="search-input"><option value="todos">-- TODOS --</option><option value="CONTADO">CONTADO</option><option value="CREDITO">CRÉDITO</option></select></div></div>' +
-                '<div class="search-field"><label>Estado:</label><div class="select"><select name="estado" class="search-input"><option value="99">-- TODOS --</option><option value="1">ACTIVA</option><option value="0">ANULADA</option></select></div></div>' +
+                '<div class="search-field"><label>Estado:</label><div class="select"><select name="estado" class="search-input"><option value="99">-- TODOS --</option><option value="1" selected>ACTIVA</option><option value="0">ANULADA</option></select></div></div>' +
                 '<div class="search-field"><label>Ordenar:</label><div class="select"><select name="orden" class="search-input"><option value="fecha_desc">Fecha Reciente</option><option value="fecha_asc">Fecha Antigua</option><option value="total_desc">Total Mayor</option><option value="total_asc">Total Menor</option></select></div></div>' +
                 '<div class="search-field"><button type="submit" class="button" style="margin-top: 22px;">Filtrar</button></div>' +
                 '</div></form></div>' +

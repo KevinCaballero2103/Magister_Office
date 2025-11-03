@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 27, 2025 at 12:52 AM
+-- Generation Time: Nov 03, 2025 at 01:39 AM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.26
 
@@ -36,34 +36,42 @@ CREATE TABLE `caja` (
   `monto` decimal(10,2) NOT NULL,
   `fecha_movimiento` date NOT NULL,
   `observaciones` text,
-  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_registro` varchar(100) DEFAULT NULL,
+  `movimiento_relacionado` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `caja`
 --
 
-INSERT INTO `caja` (`id`, `tipo_movimiento`, `categoria`, `id_referencia`, `concepto`, `monto`, `fecha_movimiento`, `observaciones`, `fecha_registro`) VALUES
-(1, 'EGRESO', 'COMPRA', 1, 'COMPRA #1 - OFIMARKET', 1400000.00, '2025-10-08', NULL, '2025-10-08 20:07:39'),
-(2, 'EGRESO', 'COMPRA', 2, 'COMPRA #2 - ALAMO ORIGI', 60000.00, '2025-10-08', NULL, '2025-10-08 20:10:31'),
-(3, 'EGRESO', 'COMPRA', 3, 'COMPRA #3 - SANTEI', 100000.00, '2025-10-08', NULL, '2025-10-08 20:13:02'),
-(4, 'EGRESO', 'COMPRA', 4, 'COMPRA #4 - ALAMON\'T', 19000.00, '2025-10-08', NULL, '2025-10-08 20:15:32'),
-(5, 'EGRESO', 'COMPRA', 5, 'COMPRA #5 - OFIMARKET', 350000.00, '2025-10-08', NULL, '2025-10-08 20:18:04'),
-(6, 'EGRESO', 'COMPRA', 6, 'COMPRA #6 - OFIMARKET', 515000.00, '2025-10-08', NULL, '2025-10-08 20:20:15'),
-(7, 'EGRESO', 'COMPRA', 7, 'COMPRA #7 - OFIMARKET', 3250000.00, '2025-10-09', NULL, '2025-10-09 19:53:54'),
-(9, 'EGRESO', 'COMPRA', 9, 'COMPRA #9 - ALAMO2', 3040000.00, '2025-10-12', NULL, '2025-10-12 00:44:06'),
-(13, 'EGRESO', 'COMPRA', 18, 'COMPRA #18 - ALAMO ORIGI', 20000.00, '2025-10-15', NULL, '2025-10-15 00:49:36'),
-(15, 'INGRESO', 'VENTA', 4, 'VENTA #4 - KEVIN SEBASTIAN CABALLERO GODOY', 3000.00, '2025-10-16', NULL, '2025-10-15 19:57:08'),
-(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45'),
-(18, 'INGRESO', 'VENTA', 5, 'VENTA #5 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000001)', 275000.00, '2025-10-19', NULL, '2025-10-19 23:15:33'),
-(19, 'INGRESO', 'VENTA', 6, 'VENTA #6 - KEVIN SEBASTIAN CABALLERO GODOY', 66000.00, '2025-10-22', NULL, '2025-10-22 00:39:29'),
-(20, 'INGRESO', 'VENTA', 7, 'VENTA #7 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000007)', 746075.00, '2025-10-22', NULL, '2025-10-22 21:15:59'),
-(21, 'INGRESO', 'VENTA', 8, 'VENTA #8 - KEVIN SEBASTIAN CABALLERO GODOY', 550000.00, '2025-10-22', NULL, '2025-10-22 21:17:48'),
-(23, 'INGRESO', 'VENTA', 10, 'VENTA #10 - KEVIN SEBASTIAN CABALLERO GODOY (FACTURA: 001-001-0000835)', 3000.00, '2025-10-23', NULL, '2025-10-23 22:56:26'),
-(24, 'INGRESO', 'VENTA', 11, 'VENTA #11 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000836)', 1130000.00, '2025-10-24', NULL, '2025-10-24 00:09:48'),
-(25, 'INGRESO', 'VENTA', 12, 'VENTA #12 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000837)', 250000.00, '2025-10-24', NULL, '2025-10-24 21:42:36'),
-(26, 'INGRESO', 'VENTA', 13, 'VENTA #13 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000838)', 1575000.00, '2025-10-24', NULL, '2025-10-24 22:17:40'),
-(27, 'INGRESO', 'VENTA', 14, 'VENTA #14 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000839)', 27000.00, '2025-10-24', NULL, '2025-10-24 22:43:22');
+INSERT INTO `caja` (`id`, `tipo_movimiento`, `categoria`, `id_referencia`, `concepto`, `monto`, `fecha_movimiento`, `observaciones`, `fecha_registro`, `usuario_registro`, `movimiento_relacionado`) VALUES
+(1, 'EGRESO', 'COMPRA', 1, 'COMPRA #1 - OFIMARKET', 1400000.00, '2025-10-08', NULL, '2025-10-08 20:07:39', NULL, NULL),
+(2, 'EGRESO', 'COMPRA', 2, 'COMPRA #2 - ALAMO ORIGI', 60000.00, '2025-10-08', NULL, '2025-10-08 20:10:31', NULL, NULL),
+(3, 'EGRESO', 'COMPRA', 3, 'COMPRA #3 - SANTEI', 100000.00, '2025-10-08', NULL, '2025-10-08 20:13:02', NULL, NULL),
+(4, 'EGRESO', 'COMPRA', 4, 'COMPRA #4 - ALAMON\'T', 19000.00, '2025-10-08', NULL, '2025-10-08 20:15:32', NULL, NULL),
+(5, 'EGRESO', 'COMPRA', 5, 'COMPRA #5 - OFIMARKET', 350000.00, '2025-10-08', NULL, '2025-10-08 20:18:04', NULL, NULL),
+(6, 'EGRESO', 'COMPRA', 6, 'COMPRA #6 - OFIMARKET', 515000.00, '2025-10-08', NULL, '2025-10-08 20:20:15', NULL, NULL),
+(7, 'EGRESO', 'COMPRA', 7, 'COMPRA #7 - OFIMARKET', 3250000.00, '2025-10-09', NULL, '2025-10-09 19:53:54', NULL, NULL),
+(9, 'EGRESO', 'COMPRA', 9, 'COMPRA #9 - ALAMO2', 3040000.00, '2025-10-12', NULL, '2025-10-12 00:44:06', NULL, NULL),
+(13, 'EGRESO', 'COMPRA', 18, 'COMPRA #18 - ALAMO ORIGI', 20000.00, '2025-10-15', NULL, '2025-10-15 00:49:36', NULL, NULL),
+(15, 'INGRESO', 'VENTA', 4, 'VENTA #4 - KEVIN SEBASTIAN CABALLERO GODOY', 3000.00, '2025-10-16', NULL, '2025-10-15 19:57:08', NULL, NULL),
+(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45', NULL, NULL),
+(18, 'INGRESO', 'VENTA', 5, 'VENTA #5 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000001)', 275000.00, '2025-10-19', NULL, '2025-10-19 23:15:33', NULL, NULL),
+(19, 'INGRESO', 'VENTA', 6, 'VENTA #6 - KEVIN SEBASTIAN CABALLERO GODOY', 66000.00, '2025-10-22', NULL, '2025-10-22 00:39:29', NULL, NULL),
+(20, 'INGRESO', 'VENTA', 7, 'VENTA #7 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000007)', 746075.00, '2025-10-22', NULL, '2025-10-22 21:15:59', NULL, NULL),
+(21, 'INGRESO', 'VENTA', 8, 'VENTA #8 - KEVIN SEBASTIAN CABALLERO GODOY', 550000.00, '2025-10-22', NULL, '2025-10-22 21:17:48', NULL, NULL),
+(23, 'INGRESO', 'VENTA', 10, 'VENTA #10 - KEVIN SEBASTIAN CABALLERO GODOY (FACTURA: 001-001-0000835)', 3000.00, '2025-10-23', NULL, '2025-10-23 22:56:26', NULL, NULL),
+(24, 'INGRESO', 'VENTA', 11, 'VENTA #11 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000836)', 1130000.00, '2025-10-24', NULL, '2025-10-24 00:09:48', NULL, NULL),
+(25, 'INGRESO', 'VENTA', 12, 'VENTA #12 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000837)', 250000.00, '2025-10-24', NULL, '2025-10-24 21:42:36', NULL, NULL),
+(26, 'INGRESO', 'VENTA', 13, 'VENTA #13 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000838)', 1575000.00, '2025-10-24', NULL, '2025-10-24 22:17:40', NULL, NULL),
+(27, 'INGRESO', 'VENTA', 14, 'VENTA #14 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000839)', 27000.00, '2025-10-24', NULL, '2025-10-24 22:43:22', NULL, NULL),
+(29, 'EGRESO', 'OTRO', 12, 'ANULACIÓN FACTURA #12 - MAGNA ADELINA GODOY OLMEDO (001-001-0000837)', 250000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: Prueba 1', '2025-11-02 17:21:45', 'ADMIN', 25),
+(30, 'EGRESO', 'OTRO', 14, 'ANULACIÓN FACTURA #14 - MAGNA ADELINA GODOY OLMEDO (001-001-0000839)', 27000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wery', '2025-11-02 17:23:03', 'ADMIN', 27),
+(31, 'EGRESO', 'OTRO', 11, 'ANULACIÓN FACTURA #11 - MAGNA ADELINA GODOY OLMEDO (001-001-0000836)', 1130000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba23', '2025-11-02 20:09:29', 'ADMIN', 24),
+(32, 'EGRESO', 'OTRO', 13, 'ANULACIÓN FACTURA #13 - MAGNA ADELINA GODOY OLMEDO (001-001-0000838)', 1575000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wdsfghkjl', '2025-11-02 20:13:10', 'ADMIN', 26),
+(33, 'EGRESO', 'OTRO', 10, 'ANULACIÓN FACTURA #10 - KEVIN SEBASTIAN CABALLERO GODOY (001-001-0000835)', 3000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba444', '2025-11-03 01:21:03', 'ADMIN', 23),
+(34, 'EGRESO', 'OTRO', 6, 'ANULACIÓN FACTURA #6 - KEVIN SEBASTIAN CABALLERO GODOY (N/A)', 66000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wergh', '2025-11-03 01:21:49', 'ADMIN', 19);
 
 -- --------------------------------------------------------
 
@@ -165,6 +173,31 @@ INSERT INTO `compras` (`id`, `id_proveedor`, `numero_compra`, `fecha_compra`, `t
 (17, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:48:49'),
 (18, 2, NULL, '2025-10-15', 20000.00, '', 1, '2025-10-15 00:49:36'),
 (20, 2, NULL, '2025-10-15', 200000.00, '', 1, '2025-10-15 20:07:45');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `configuracion_sistema`
+--
+
+CREATE TABLE `configuracion_sistema` (
+  `id` int NOT NULL,
+  `clave` varchar(100) NOT NULL,
+  `valor` text NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `tipo` enum('TEXTO','NUMERO','BOOLEAN','JSON') DEFAULT 'TEXTO',
+  `fecha_actualizacion` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `configuracion_sistema`
+--
+
+INSERT INTO `configuracion_sistema` (`id`, `clave`, `valor`, `descripcion`, `tipo`, `fecha_actualizacion`) VALUES
+(1, 'dias_limite_anulacion', '30', 'Días máximos para anular una venta', 'NUMERO', '2025-11-02 17:16:46'),
+(2, 'requiere_motivo_anulacion', '1', 'Si se requiere motivo obligatorio para anular', 'BOOLEAN', '2025-11-02 17:16:46'),
+(3, 'permitir_anular_factura', '1', 'Permitir anular facturas (genera nota de crédito)', 'BOOLEAN', '2025-11-02 17:16:46'),
+(4, 'generar_nota_credito_auto', '0', 'Generar nota de crédito automáticamente', 'BOOLEAN', '2025-11-02 17:16:46');
 
 -- --------------------------------------------------------
 
@@ -312,7 +345,40 @@ INSERT INTO `detalle_ventas` (`id`, `id_venta`, `tipo_item`, `id_item`, `descrip
 (27, 13, 'PRODUCTO', 6, 'REGLA 30CM', NULL, 10, 5000.00, 10.00, 0.00, 0.00, 50000.00),
 (28, 13, 'SERVICIO', 17, 'FOTOCOPIAS', NULL, 100, 250.00, 10.00, 0.00, 0.00, 25000.00),
 (29, 13, 'PRODUCTO', 2, 'RESMA A4', NULL, 30, 50000.00, 10.00, 0.00, 0.00, 1500000.00),
-(30, 14, 'PRODUCTO', 1, 'BIROME BIC AZUL', NULL, 9, 3000.00, 10.00, 0.00, 0.00, 27000.00);
+(30, 14, 'PRODUCTO', 1, 'BIROME BIC AZUL', NULL, 9, 3000.00, 10.00, 0.00, 0.00, 27000.00),
+(31, 15, 'PRODUCTO', 1, 'BIROME BIC AZUL', NULL, 10, 3000.00, 10.00, 0.00, 0.00, 30000.00),
+(32, 15, 'SERVICIO', 17, 'FOTOCOPIAS', NULL, 100, 250.00, 10.00, 0.00, 0.00, 25000.00);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `historial_anulaciones`
+--
+
+CREATE TABLE `historial_anulaciones` (
+  `id` int NOT NULL,
+  `id_venta` int NOT NULL,
+  `tipo_documento` varchar(50) DEFAULT NULL,
+  `numero_documento` varchar(100) DEFAULT NULL,
+  `monto_anulado` decimal(12,2) NOT NULL,
+  `motivo` text NOT NULL,
+  `usuario_anula` varchar(100) NOT NULL,
+  `fecha_anulacion` datetime NOT NULL,
+  `detalles_json` text,
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `historial_anulaciones`
+--
+
+INSERT INTO `historial_anulaciones` (`id`, `id_venta`, `tipo_documento`, `numero_documento`, `monto_anulado`, `motivo`, `usuario_anula`, `fecha_anulacion`, `detalles_json`, `fecha_registro`) VALUES
+(1, 12, 'FACTURA', '001-001-0000837', 250000.00, 'Prueba 1', 'ADMIN', '2025-11-02 13:21:45', '{\"productos_revertidos\":1,\"servicios\":1,\"items_totales\":2,\"cliente\":\"MAGNA ADELINA GODOY OLMEDO\",\"movimiento_caja_id\":\"29\"}', '2025-11-02 17:21:45'),
+(2, 14, 'FACTURA', '001-001-0000839', 27000.00, 'wery', 'ADMIN', '2025-11-02 13:23:03', '{\"productos_revertidos\":1,\"servicios\":0,\"items_totales\":1,\"cliente\":\"MAGNA ADELINA GODOY OLMEDO\",\"movimiento_caja_id\":\"30\"}', '2025-11-02 17:23:03'),
+(3, 11, 'FACTURA', '001-001-0000836', 1130000.00, 'prueba23', 'ADMIN', '2025-11-02 16:09:29', '{\"productos_revertidos\":2,\"servicios\":0,\"items_totales\":2,\"cliente\":\"MAGNA ADELINA GODOY OLMEDO\",\"movimiento_caja_id\":\"31\"}', '2025-11-02 20:09:29'),
+(4, 13, 'FACTURA', '001-001-0000838', 1575000.00, 'wdsfghkjl', 'ADMIN', '2025-11-02 16:13:10', '{\"productos_revertidos\":2,\"servicios\":1,\"items_totales\":3,\"cliente\":\"MAGNA ADELINA GODOY OLMEDO\",\"movimiento_caja_id\":\"32\"}', '2025-11-02 20:13:10'),
+(5, 10, 'FACTURA', '001-001-0000835', 3000.00, 'prueba444', 'ADMIN', '2025-11-02 21:21:03', '{\"productos_revertidos\":1,\"servicios\":0,\"items_totales\":1,\"cliente\":\"KEVIN SEBASTIAN CABALLERO GODOY\",\"movimiento_caja_id\":\"33\"}', '2025-11-03 01:21:03'),
+(6, 6, 'FACTURA', 'N/A', 66000.00, 'wergh', 'ADMIN', '2025-11-02 21:21:49', '{\"productos_revertidos\":1,\"servicios\":1,\"items_totales\":2,\"cliente\":\"KEVIN SEBASTIAN CABALLERO GODOY\",\"movimiento_caja_id\":\"34\"}', '2025-11-03 01:21:49');
 
 -- --------------------------------------------------------
 
@@ -387,7 +453,37 @@ INSERT INTO `historial_stock` (`id`, `id_producto`, `tipo_movimiento`, `cantidad
 (48, 6, 'SALIDA', 30, 130, 100, 'VENTA #12', 12, '2025-10-24 21:42:36'),
 (49, 6, 'SALIDA', 10, 100, 90, 'VENTA #13', 13, '2025-10-24 22:17:40'),
 (50, 2, 'SALIDA', 30, 330, 300, 'VENTA #13', 13, '2025-10-24 22:17:40'),
-(51, 1, 'SALIDA', 9, 29, 20, 'VENTA #14', 14, '2025-10-24 22:43:22');
+(51, 1, 'SALIDA', 9, 29, 20, 'VENTA #14', 14, '2025-10-24 22:43:22'),
+(52, 1, 'SALIDA', 10, 20, 10, 'VENTA #15', 15, '2025-10-29 21:35:27'),
+(53, 1, 'ENTRADA', 10, 10, 20, 'ANULACIÓN VENTA #15', 15, '2025-10-29 22:07:13'),
+(54, 6, 'ENTRADA', 30, 90, 120, 'ANULACIÓN FACTURA #12 - Usuario: ADMIN - Motivo: Prueba 1', 12, '2025-11-02 17:21:45'),
+(55, 1, 'ENTRADA', 9, 20, 29, 'ANULACIÓN FACTURA #14 - Usuario: ADMIN - Motivo: wery', 14, '2025-11-02 17:23:03'),
+(56, 2, 'ENTRADA', 10, 300, 310, 'ANULACIÓN FACTURA #11 - Usuario: ADMIN - Motivo: prueba23', 11, '2025-11-02 20:09:29'),
+(57, 3, 'ENTRADA', 21, 400, 421, 'ANULACIÓN FACTURA #11 - Usuario: ADMIN - Motivo: prueba23', 11, '2025-11-02 20:09:29'),
+(58, 6, 'ENTRADA', 10, 120, 130, 'ANULACIÓN FACTURA #13 - Usuario: ADMIN - Motivo: wdsfghkjl', 13, '2025-11-02 20:13:10'),
+(59, 2, 'ENTRADA', 30, 310, 340, 'ANULACIÓN FACTURA #13 - Usuario: ADMIN - Motivo: wdsfghkjl', 13, '2025-11-02 20:13:10'),
+(60, 1, 'ENTRADA', 1, 29, 30, 'ANULACIÓN FACTURA #10 - Usuario: ADMIN - Motivo: prueba444', 10, '2025-11-03 01:21:03'),
+(61, 6, 'ENTRADA', 10, 130, 140, 'ANULACIÓN FACTURA #6 - Usuario: ADMIN - Motivo: wergh', 6, '2025-11-03 01:21:49');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notas_credito`
+--
+
+CREATE TABLE `notas_credito` (
+  `id` int NOT NULL,
+  `id_venta_original` int NOT NULL,
+  `numero_nota` varchar(100) DEFAULT NULL,
+  `serie` varchar(50) DEFAULT NULL,
+  `fecha_emision` datetime NOT NULL,
+  `monto_total` decimal(12,2) NOT NULL,
+  `motivo` text NOT NULL,
+  `estado` enum('PENDIENTE','EMITIDA','ANULADA') DEFAULT 'PENDIENTE',
+  `usuario_genera` varchar(100) NOT NULL,
+  `observaciones` text,
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -451,11 +547,11 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id`, `nombre_producto`, `codigo_producto`, `precio_venta`, `stock_actual`, `stock_minimo`, `estado_producto`, `fecha_registro`) VALUES
-(1, 'BIROME BIC AZUL', '', 3000.00, 20, 10, 1, '2025-09-24 20:39:01'),
-(2, 'RESMA A4', '2343342432', 50000.00, 300, 10, 1, '2025-09-25 21:51:26'),
-(3, 'RESMA A5+', '23456787654', 30000.00, 400, 20, 1, '2025-09-30 21:42:56'),
+(1, 'BIROME BIC AZUL', '', 3000.00, 30, 10, 1, '2025-09-24 20:39:01'),
+(2, 'RESMA A4', '2343342432', 50000.00, 340, 10, 1, '2025-09-25 21:51:26'),
+(3, 'RESMA A5+', '23456787654', 30000.00, 421, 20, 1, '2025-09-30 21:42:56'),
 (5, 'BORRADOR', '4353456789', 3000.00, 90, 5, 1, '2025-10-15 00:20:00'),
-(6, 'REGLA 30CM', '3456734567', 5000.00, 90, 5, 1, '2025-10-19 15:19:28');
+(6, 'REGLA 30CM', '3456734567', 5000.00, 140, 5, 1, '2025-10-19 15:19:28');
 
 -- --------------------------------------------------------
 
@@ -567,6 +663,29 @@ INSERT INTO `servicios` (`id`, `nombre_servicio`, `categoria_servicio`, `precio_
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` int NOT NULL,
+  `nombre_usuario` varchar(100) NOT NULL,
+  `usuario` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `rol` enum('ADMINISTRADOR','CAJERO','VENDEDOR') DEFAULT 'VENDEDOR',
+  `estado` tinyint(1) DEFAULT '1',
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `nombre_usuario`, `usuario`, `password`, `rol`, `estado`, `fecha_registro`) VALUES
+(1, 'Administrador', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMINISTRADOR', 1, '2025-11-02 17:16:46');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `ventas`
 --
 
@@ -589,28 +708,33 @@ CREATE TABLE `ventas` (
   `total_venta` decimal(10,2) NOT NULL DEFAULT '0.00',
   `observaciones` text,
   `estado_venta` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1=Activa, 0=Anulada',
-  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `fecha_anulacion` datetime DEFAULT NULL,
+  `motivo_anulacion` text,
+  `usuario_anula` varchar(100) DEFAULT NULL,
+  `usuario_registro` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `id_cliente`, `es_factura_legal`, `tipo_comprobante`, `serie`, `numero_venta`, `condicion_venta`, `forma_pago`, `cuotas`, `fecha_vencimiento_primera`, `fecha_venta`, `subtotal`, `descuento`, `iva_total`, `usuario_id`, `total_venta`, `observaciones`, `estado_venta`, `fecha_registro`) VALUES
-(1, 3, 0, NULL, NULL, '234567234', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-12 00:00:00', 48000.00, 0.00, 0.00, NULL, 48000.00, '', 0, '2025-10-12 18:39:35'),
-(2, 3, 0, NULL, NULL, '324456778965', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13 00:00:00', 430000.00, 0.00, 0.00, NULL, 430000.00, '', 0, '2025-10-14 02:03:30'),
-(3, 5, 0, NULL, NULL, '4356879', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13 00:00:00', 560000.00, 0.00, 0.00, NULL, 560000.00, '', 0, '2025-10-15 19:56:31'),
-(4, 1, 0, NULL, NULL, NULL, 'CONTADO', 'CONTADO', 1, NULL, '2025-10-16 00:00:00', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-15 19:57:08'),
-(5, 1, 0, 'TICKET', NULL, '0000001', 'CREDITO', 'CONTADO', 5, '2026-02-28', '2025-10-19 00:00:00', 250000.00, 0.00, 0.00, NULL, 275000.00, '', 1, '2025-10-19 23:15:33'),
-(6, 3, 1, 'FACTURA', NULL, NULL, 'CONTADO', 'CONTADO', NULL, NULL, '2025-10-22 00:00:00', 60000.00, 0.00, 0.00, NULL, 66000.00, '', 1, '2025-10-22 00:39:29'),
-(7, 1, 0, 'TICKET', NULL, '0000007', 'CREDITO', 'TARJETA', 12, '2025-10-26', '2025-10-22 00:00:00', 678250.00, 0.00, 0.00, NULL, 746075.00, '', 1, '2025-10-22 21:15:59'),
-(8, 1, 1, 'FACTURA', NULL, NULL, 'CREDITO', 'TRANSFERENCIA', 3, '2025-10-23', '2025-10-22 00:00:00', 500000.00, 0.00, 0.00, NULL, 550000.00, '', 1, '2025-10-22 21:17:48'),
-(9, 3, 0, 'TICKET', NULL, '0000009', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23 00:00:00', 51000.00, 0.00, 0.00, NULL, 51000.00, '', 0, '2025-10-23 22:55:29'),
-(10, 3, 0, 'FACTURA', NULL, '001-001-0000835', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23 00:00:00', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-23 22:56:26'),
-(11, 7, 0, 'FACTURA', NULL, '001-001-0000836', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 00:08:00', 1130000.00, 0.00, 0.00, NULL, 1130000.00, '', 1, '2025-10-24 00:09:48'),
-(12, 7, 0, 'FACTURA', NULL, '001-001-0000837', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 21:41:00', 250000.00, 0.00, 0.00, NULL, 250000.00, '', 1, '2025-10-24 21:42:36'),
-(13, 7, 0, 'FACTURA', NULL, '001-001-0000838', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 19:15:00', 1575000.00, 0.00, 0.00, NULL, 1575000.00, '', 1, '2025-10-24 22:17:40'),
-(14, 7, 0, 'FACTURA', NULL, '001-001-0000839', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 19:42:00', 27000.00, 0.00, 0.00, NULL, 27000.00, '', 1, '2025-10-24 22:43:22');
+INSERT INTO `ventas` (`id`, `id_cliente`, `es_factura_legal`, `tipo_comprobante`, `serie`, `numero_venta`, `condicion_venta`, `forma_pago`, `cuotas`, `fecha_vencimiento_primera`, `fecha_venta`, `subtotal`, `descuento`, `iva_total`, `usuario_id`, `total_venta`, `observaciones`, `estado_venta`, `fecha_registro`, `fecha_anulacion`, `motivo_anulacion`, `usuario_anula`, `usuario_registro`) VALUES
+(1, 3, 0, NULL, NULL, '234567234', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-12 00:00:00', 48000.00, 0.00, 0.00, NULL, 48000.00, '', 0, '2025-10-12 18:39:35', NULL, NULL, NULL, NULL),
+(2, 3, 0, NULL, NULL, '324456778965', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13 00:00:00', 430000.00, 0.00, 0.00, NULL, 430000.00, '', 0, '2025-10-14 02:03:30', NULL, NULL, NULL, NULL),
+(3, 5, 0, NULL, NULL, '4356879', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-13 00:00:00', 560000.00, 0.00, 0.00, NULL, 560000.00, '', 0, '2025-10-15 19:56:31', NULL, NULL, NULL, NULL),
+(4, 1, 0, NULL, NULL, NULL, 'CONTADO', 'CONTADO', 1, NULL, '2025-10-16 00:00:00', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 1, '2025-10-15 19:57:08', NULL, NULL, NULL, NULL),
+(5, 1, 0, 'TICKET', NULL, '0000001', 'CREDITO', 'CONTADO', 5, '2026-02-28', '2025-10-19 00:00:00', 250000.00, 0.00, 0.00, NULL, 275000.00, '', 1, '2025-10-19 23:15:33', NULL, NULL, NULL, NULL),
+(6, 3, 1, 'FACTURA', NULL, NULL, 'CONTADO', 'CONTADO', NULL, NULL, '2025-10-22 00:00:00', 60000.00, 0.00, 0.00, NULL, 66000.00, '', 0, '2025-10-22 00:39:29', '2025-11-02 21:21:49', 'wergh', 'ADMIN', NULL),
+(7, 1, 0, 'TICKET', NULL, '0000007', 'CREDITO', 'TARJETA', 12, '2025-10-26', '2025-10-22 00:00:00', 678250.00, 0.00, 0.00, NULL, 746075.00, '', 1, '2025-10-22 21:15:59', NULL, NULL, NULL, NULL),
+(8, 1, 1, 'FACTURA', NULL, NULL, 'CREDITO', 'TRANSFERENCIA', 3, '2025-10-23', '2025-10-22 00:00:00', 500000.00, 0.00, 0.00, NULL, 550000.00, '', 1, '2025-10-22 21:17:48', NULL, NULL, NULL, NULL),
+(9, 3, 0, 'TICKET', NULL, '0000009', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23 00:00:00', 51000.00, 0.00, 0.00, NULL, 51000.00, '', 0, '2025-10-23 22:55:29', NULL, NULL, NULL, NULL),
+(10, 3, 0, 'FACTURA', NULL, '001-001-0000835', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-23 00:00:00', 3000.00, 0.00, 0.00, NULL, 3000.00, '', 0, '2025-10-23 22:56:26', '2025-11-02 21:21:03', 'prueba444', 'ADMIN', NULL),
+(11, 7, 0, 'FACTURA', NULL, '001-001-0000836', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 00:08:00', 1130000.00, 0.00, 0.00, NULL, 1130000.00, '', 0, '2025-10-24 00:09:48', '2025-11-02 16:09:29', 'prueba23', 'ADMIN', NULL),
+(12, 7, 0, 'FACTURA', NULL, '001-001-0000837', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 21:41:00', 250000.00, 0.00, 0.00, NULL, 250000.00, '', 0, '2025-10-24 21:42:36', '2025-11-02 13:21:45', 'Prueba 1', 'ADMIN', NULL),
+(13, 7, 0, 'FACTURA', NULL, '001-001-0000838', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 19:15:00', 1575000.00, 0.00, 0.00, NULL, 1575000.00, '', 0, '2025-10-24 22:17:40', '2025-11-02 16:13:10', 'wdsfghkjl', 'ADMIN', NULL),
+(14, 7, 0, 'FACTURA', NULL, '001-001-0000839', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-24 19:42:00', 27000.00, 0.00, 0.00, NULL, 27000.00, '', 0, '2025-10-24 22:43:22', '2025-11-02 13:23:03', 'wery', 'ADMIN', NULL),
+(15, 7, 0, 'FACTURA', NULL, '001-001-0000840', 'CONTADO', 'CONTADO', 1, NULL, '2025-10-29 18:34:00', 55000.00, 0.00, 0.00, NULL, 55000.00, '', 0, '2025-10-29 21:35:27', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -707,6 +831,13 @@ ALTER TABLE `compras`
   ADD KEY `idx_fecha` (`fecha_compra`);
 
 --
+-- Indexes for table `configuracion_sistema`
+--
+ALTER TABLE `configuracion_sistema`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `clave` (`clave`);
+
+--
 -- Indexes for table `cuentas_corrientes`
 --
 ALTER TABLE `cuentas_corrientes`
@@ -738,6 +869,15 @@ ALTER TABLE `detalle_ventas`
   ADD KEY `idx_tipo_item` (`tipo_item`,`id_item`);
 
 --
+-- Indexes for table `historial_anulaciones`
+--
+ALTER TABLE `historial_anulaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `id_venta` (`id_venta`),
+  ADD KEY `idx_fecha` (`fecha_anulacion`),
+  ADD KEY `idx_usuario` (`usuario_anula`);
+
+--
 -- Indexes for table `historial_stock`
 --
 ALTER TABLE `historial_stock`
@@ -745,6 +885,14 @@ ALTER TABLE `historial_stock`
   ADD KEY `idx_producto` (`id_producto`),
   ADD KEY `idx_tipo` (`tipo_movimiento`),
   ADD KEY `idx_fecha` (`fecha_movimiento`);
+
+--
+-- Indexes for table `notas_credito`
+--
+ALTER TABLE `notas_credito`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_venta` (`id_venta_original`),
+  ADD KEY `idx_estado` (`estado`);
 
 --
 -- Indexes for table `pagos_compra`
@@ -795,13 +943,23 @@ ALTER TABLE `servicios`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `usuario` (`usuario`);
+
+--
 -- Indexes for table `ventas`
 --
 ALTER TABLE `ventas`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uk_ventas_tipo_serie_num` (`tipo_comprobante`,`serie`,`numero_venta`),
   ADD KEY `idx_cliente` (`id_cliente`),
-  ADD KEY `idx_fecha` (`fecha_venta`);
+  ADD KEY `idx_fecha` (`fecha_venta`),
+  ADD KEY `idx_estado` (`estado_venta`),
+  ADD KEY `idx_fecha_anulacion` (`fecha_anulacion`),
+  ADD KEY `idx_usuario_anula` (`usuario_anula`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -811,7 +969,7 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT for table `caja`
 --
 ALTER TABLE `caja`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `cierres_caja`
@@ -830,6 +988,12 @@ ALTER TABLE `clientes`
 --
 ALTER TABLE `compras`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+
+--
+-- AUTO_INCREMENT for table `configuracion_sistema`
+--
+ALTER TABLE `configuracion_sistema`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cuentas_corrientes`
@@ -853,13 +1017,25 @@ ALTER TABLE `detalle_compras`
 -- AUTO_INCREMENT for table `detalle_ventas`
 --
 ALTER TABLE `detalle_ventas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
+-- AUTO_INCREMENT for table `historial_anulaciones`
+--
+ALTER TABLE `historial_anulaciones`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `historial_stock`
 --
 ALTER TABLE `historial_stock`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+
+--
+-- AUTO_INCREMENT for table `notas_credito`
+--
+ALTER TABLE `notas_credito`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pagos_compra`
@@ -904,10 +1080,16 @@ ALTER TABLE `servicios`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
+-- AUTO_INCREMENT for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 -- --------------------------------------------------------
 
@@ -974,10 +1156,22 @@ ALTER TABLE `detalle_ventas`
   ADD CONSTRAINT `fk_detalleventas_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `historial_anulaciones`
+--
+ALTER TABLE `historial_anulaciones`
+  ADD CONSTRAINT `historial_anulaciones_ibfk_1` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `historial_stock`
 --
 ALTER TABLE `historial_stock`
   ADD CONSTRAINT `fk_historial_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `notas_credito`
+--
+ALTER TABLE `notas_credito`
+  ADD CONSTRAINT `notas_credito_ibfk_1` FOREIGN KEY (`id_venta_original`) REFERENCES `ventas` (`id`);
 
 --
 -- Constraints for table `pagos_venta`
