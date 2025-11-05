@@ -1,5 +1,9 @@
 <?php
+include_once "../auth.php";
 include_once "../db.php";
+
+// Registrar acceso al módulo
+registrarActividad('ACCESO', 'CAJA', 'Acceso a apertura de caja', null, null);
 
 // Verificar si ya hay una caja abierta
 $sentencia = $conexion->prepare("SELECT * FROM cierres_caja WHERE estado = 'ABIERTA' ORDER BY fecha_apertura DESC LIMIT 1");
@@ -31,6 +35,14 @@ if ($cajaAbierta) {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
+        .info-usuario {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -44,10 +56,16 @@ if ($cajaAbierta) {
             const now = new Date();
             const fechaHora = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}T${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
+            const usuarioNombre = '<?php echo addslashes($_SESSION['usuario_nombre']); ?>';
+
             const formHTML = `
                 <div class="form-container">
                     <div class="apertura-icon">🔓💰</div>
                     <h1 class="form-title">Apertura de Caja</h1>
+                    
+                    <div class="info-usuario">
+                        👤 Apertura realizada por: <strong style="color: #f1c40f;">${usuarioNombre}</strong>
+                    </div>
                     
                     <form action="./procesar_apertura.php" method="post" onsubmit="return confirm('¿Confirmar apertura de caja?')">
                         <div class="columns">
@@ -64,14 +82,7 @@ if ($cajaAbierta) {
                                     <div class="control">
                                         <input class="input" type="number" step="0.01" min="0" name="saldo_inicial" placeholder="0.00" required style="font-size: 1.3rem; font-weight: bold;">
                                     </div>
-                                    <p class="help" style="color: rgba(255,255,255,0.7);">Dinero físico con el que inicias (opcional: puede ser 0)</p>
-                                </div>
-
-                                <div class="field">
-                                    <label class="label">Usuario que Abre *</label>
-                                    <div class="control">
-                                        <input class="input" type="text" name="usuario_apertura" placeholder="Nombre del cajero" required>
-                                    </div>
+                                    <p class="help" style="color: rgba(255,255,255,0.7);">Dinero físico con el que inicias (puede ser 0)</p>
                                 </div>
 
                                 <div class="field">

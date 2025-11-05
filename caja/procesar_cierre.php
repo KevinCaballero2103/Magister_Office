@@ -1,4 +1,6 @@
 <?php
+include_once "../auth.php";
+
 $mensaje = "";
 $tipo = "";
 $titulo = "";
@@ -6,6 +8,9 @@ $titulo = "";
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include_once "../db.php";
+        
+        // Obtener usuario actual
+        $usuarioActual = getUsuarioActual();
 
         $id_cierre = intval($_POST['id_cierre'] ?? 0);
         $fecha_cierre = $_POST['fecha_cierre'] ?? null;
@@ -13,7 +18,6 @@ try {
         $saldo_fisico = floatval($_POST['saldo_fisico'] ?? 0);
         $total_ingresos = floatval($_POST['total_ingresos'] ?? 0);
         $total_egresos = floatval($_POST['total_egresos'] ?? 0);
-        $usuario_cierre = trim($_POST['usuario_cierre'] ?? '');
         $observaciones_cierre = trim($_POST['observaciones_cierre'] ?? '') ?: null;
 
         // Convertir fecha a zona horaria Paraguay
@@ -35,10 +39,6 @@ try {
 
         if (!$caja) {
             throw new Exception("No se encontró una caja abierta con ese ID");
-        }
-
-        if (empty($usuario_cierre)) {
-            throw new Exception("El nombre del usuario que cierra es obligatorio");
         }
 
         // Calcular diferencia
@@ -69,12 +69,32 @@ try {
             $saldo_sistema,
             $saldo_fisico,
             $diferencia,
-            $usuario_cierre,
+            $usuarioActual['nombre'],  // USAR USUARIO ACTUAL
             $observaciones_cierre,
             $id_cierre
         ]);
 
         if ($resultado) {
+            // REGISTRAR EN LOG DE ACTIVIDADES
+            registrarActividad(
+                'CIERRE_CAJA',
+                'CAJA',
+                "Cierre de caja #$id_cierre - Diferencia: ₲ " . number_format($diferencia, 0, ',', '.'),
+                [
+                    'saldo_inicial' => floatval($caja->saldo_inicial),
+                    'estado_anterior' => 'ABIERTA'
+                ],
+                [
+                    'id_cierre' => $id_cierre,
+                    'saldo_sistema' => $saldo_sistema,
+                    'saldo_fisico' => $saldo_fisico,
+                    'diferencia' => $diferencia,
+                    'total_ingresos' => $total_ingresos,
+                    'total_egresos' => $total_egresos,
+                    'estado_nuevo' => 'CERRADA'
+                ]
+            );
+            
             $titulo = "✅ Caja Cerrada Exitosamente";
             
             $diferenciaTexto = '';
@@ -86,10 +106,10 @@ try {
                 $diferenciaTexto = '<span style="color: #e74c3c;">⚠️ FALTANTE de ₲ ' . number_format(abs($diferencia), 0, ',', '.') . '</span>';
             }
 
-            $mensaje = "La caja ha sido cerrada correctamente.<br><br>
+            $mensaje = "La caja ha sido cerrada correctamente por <strong>{$usuarioActual['nombre']}</strong>.<br><br>
                         <strong>Resumen del Cierre:</strong><br>
                         • ID Cierre: <strong>#$id_cierre</strong><br>
-                        • Usuario Cierre: <strong>$usuario_cierre</strong><br>
+                        • Usuario Cierre: <strong>{$usuarioActual['nombre']}</strong><br>
                         • Fecha/Hora: <strong>" . date('d/m/Y H:i', strtotime($fecha_cierre)) . "</strong><br><br>
                         <strong>Movimientos:</strong><br>
                         • Saldo Inicial: <strong>₲ " . number_format($caja->saldo_inicial, 0, ',', '.') . "</strong><br>
@@ -110,6 +130,11 @@ try {
     $titulo = "❌ Error al Cerrar Caja";
     $mensaje = htmlspecialchars($e->getMessage());
     $tipo = "error";
+    
+    // Registrar error
+    if (isset($usuarioActual)) {
+        registrarActividad('ERROR', 'CAJA', "Error al cerrar caja: " . $e->getMessage(), null, null);
+    }
 }
 ?>
 <!DOCTYPE html>

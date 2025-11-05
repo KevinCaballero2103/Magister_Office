@@ -1,13 +1,16 @@
 <?php
+// Incluir autenticación
+include_once "auth.php";
 include_once "db.php";
 
-// ===== VERIFICAR ESTADO DE CAJA =====
-$sentenciaCajaAbierta = $conexion->prepare("SELECT * FROM cierres_caja WHERE estado = 'ABIERTA' ORDER BY fecha_apertura DESC LIMIT 1");
-$sentenciaCajaAbierta->execute();
-$cajaAbierta = $sentenciaCajaAbierta->fetch(PDO::FETCH_OBJ);
+// Registrar acceso al dashboard
+registrarActividad('ACCESO', 'DASHBOARD', 'Acceso al panel principal', null, null);
 
-// ===== ESTADÍSTICAS DE CAJA HOY =====
+// Fecha actual
 $hoy = date('Y-m-d');
+$mes_actual = date('Y-m');
+
+// ESTADÍSTICAS DE CAJA HOY
 $sentenciaHoy = $conexion->prepare("
     SELECT 
         SUM(CASE WHEN tipo_movimiento = 'INGRESO' THEN monto ELSE 0 END) as ingresos_hoy,
@@ -21,12 +24,12 @@ $ingresos_hoy = floatval($cajaHoy->ingresos_hoy ?? 0);
 $egresos_hoy = floatval($cajaHoy->egresos_hoy ?? 0);
 $saldo_hoy = $ingresos_hoy - $egresos_hoy;
 
-// ===== SALDO TOTAL =====
+// SALDO TOTAL
 $sentenciaTotal = $conexion->prepare("SELECT SUM(CASE WHEN tipo_movimiento = 'INGRESO' THEN monto ELSE -monto END) as saldo_total FROM caja");
 $sentenciaTotal->execute();
 $saldo_total = floatval($sentenciaTotal->fetchColumn() ?? 0);
 
-// ===== PRODUCTOS BAJO STOCK =====
+// PRODUCTOS BAJO STOCK
 $sentenciaBajoStock = $conexion->prepare("
     SELECT COUNT(*) as total,
            SUM(CASE WHEN stock_actual = 0 THEN 1 ELSE 0 END) as criticos,
@@ -36,7 +39,7 @@ $sentenciaBajoStock = $conexion->prepare("
 $sentenciaBajoStock->execute();
 $stockStats = $sentenciaBajoStock->fetch(PDO::FETCH_OBJ);
 
-// ===== TOP 5 PRODUCTOS MÁS VENDIDOS =====
+// TOP 5 PRODUCTOS MÁS VENDIDOS
 $sentenciaTopProductos = $conexion->prepare("
     SELECT dv.descripcion, SUM(dv.cantidad) as total_vendido, SUM(dv.subtotal) as ingresos
     FROM detalle_ventas dv
@@ -48,14 +51,18 @@ $sentenciaTopProductos = $conexion->prepare("
 $sentenciaTopProductos->execute();
 $topProductos = $sentenciaTopProductos->fetchAll(PDO::FETCH_OBJ);
 
-// ===== VENTAS DEL MES =====
-$mes_actual = date('Y-m');
+// VENTAS DEL MES
 $sentenciaVentasMes = $conexion->prepare("
     SELECT COUNT(*) as total_ventas, SUM(total_venta) as ingresos_ventas
     FROM ventas WHERE DATE_FORMAT(fecha_venta, '%Y-%m') = ? AND estado_venta = 1
 ");
 $sentenciaVentasMes->execute([$mes_actual]);
 $ventasMes = $sentenciaVentasMes->fetch(PDO::FETCH_OBJ);
+
+// VERIFICAR ESTADO DE CAJA
+$sentenciaCajaAbierta = $conexion->prepare("SELECT * FROM cierres_caja WHERE estado = 'ABIERTA' ORDER BY fecha_apertura DESC LIMIT 1");
+$sentenciaCajaAbierta->execute();
+$cajaAbierta = $sentenciaCajaAbierta->fetch(PDO::FETCH_OBJ);
 
 // Convertir a JSON
 $dataJSON = json_encode([
@@ -183,6 +190,18 @@ $dataJSON = json_encode([
             color: rgba(255,255,255,0.7);
             font-size: 0.9rem;
         }
+        /* NUEVO: Bienvenida con usuario */
+        .welcome-message {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .welcome-message strong {
+            color: #f1c40f;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +257,10 @@ $dataJSON = json_encode([
                 <div class="dashboard-header">
                     <h1 class="dashboard-title">Magister Office</h1>
                     <p class="dashboard-subtitle">${fechaHoy}</p>
+                </div>
+
+                <div class="welcome-message">
+                    👋 Bienvenido/a, <strong><?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></strong> (<?php echo $_SESSION['usuario_rol']; ?>)
                 </div>
 
                 ${cajaAlertHTML}

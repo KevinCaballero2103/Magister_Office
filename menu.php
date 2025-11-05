@@ -1,4 +1,7 @@
 <?php
+// menu.php - Sistema de navegación con autenticación
+// IMPORTANTE: Este archivo NO incluye auth.php porque se incluye desde páginas que ya lo tienen
+
 // Calcular rutas dinámicas
 $levels = substr_count(dirname($_SERVER['SCRIPT_NAME']), '/') - 1;
 $prefix = str_repeat('../', $levels);
@@ -21,6 +24,15 @@ function getCurrentModule($currentDir, $currentPage) {
 }
 
 $currentModule = getCurrentModule($currentDir, $currentPage);
+
+// Obtener datos del usuario actual (si está autenticado)
+$usuarioActual = null;
+if (isset($_SESSION['usuario_nombre'])) {
+    $usuarioActual = [
+        'nombre' => $_SESSION['usuario_nombre'],
+        'rol' => $_SESSION['usuario_rol'] ?? 'USUARIO'
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -29,6 +41,113 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?php echo $prefix; ?>css/sidebar-menu.css">
+    <style>
+        /* Estilos para la sección de usuario */
+        .user-section {
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 10px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar:hover .user-info {
+            opacity: 1;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #f39c12, #f1c40f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .user-name {
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .user-role {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.75rem;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+            opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .sidebar:hover .logout-btn {
+            opacity: 1;
+        }
+        
+        .logout-btn:hover {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+        }
+        
+        /* Indicador de rol con colores */
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .role-admin {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .role-cajero {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .role-vendedor {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="main-container">
@@ -42,6 +161,31 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                 <img src="<?php echo $prefix; ?>img/logo.png" alt="Logo">
                 <span class="logo-text">Magister Office</span>
             </div>
+
+            <!-- NUEVO: Sección de usuario -->
+            <?php if ($usuarioActual): ?>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <?php echo strtoupper(substr($usuarioActual['nombre'], 0, 1)); ?>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name" title="<?php echo htmlspecialchars($usuarioActual['nombre']); ?>">
+                            <?php echo htmlspecialchars($usuarioActual['nombre']); ?>
+                        </div>
+                        <div class="user-role">
+                            <span class="role-badge role-<?php echo strtolower($usuarioActual['rol']); ?>">
+                                <?php echo $usuarioActual['rol']; ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="confirmarLogout()">
+                    <span>🚪</span>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+            <?php endif; ?>
 
             <!-- Indicador página actual -->
             <div class="current-page">
@@ -112,7 +256,6 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
-                
                 <!-- Servicios -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
@@ -130,7 +273,7 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
-                <!-- COMPRAS (NUEVO) -->
+                <!-- COMPRAS -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
                         <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -147,7 +290,7 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
-                <!-- VENTAS (NUEVO) -->
+                <!-- VENTAS -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
                         <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -165,7 +308,7 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
-                <!-- Caja (ACTUALIZADO) -->
+                <!-- Caja -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
                         <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -185,7 +328,6 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                     </div>
                 </div>
 
-
                 <!-- Auditoría -->
                 <div class="nav-item">
                     <div class="nav-link" onclick="toggleSubmenu(this)">
@@ -203,6 +345,24 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
                         <a href="<?php echo $prefix; ?>auditoria/historial_stock.php" class="submenu-item">Historial de Stock</a>
                     </div>
                 </div>
+                <!-- Usuarios (SOLO ADMINISTRADORES) -->
+                <?php if (isset($_SESSION['usuario_rol']) && $_SESSION['usuario_rol'] === 'ADMINISTRADOR'): ?>
+                <div class="nav-item">
+                    <div class="nav-link" onclick="toggleSubmenu(this)">
+                        <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                        </svg>
+                        <span class="nav-text">Usuarios</span>
+                        <svg class="nav-arrow" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 12l-4-4h8l-4 4z"/>
+                        </svg>
+                    </div>
+                    <div class="submenu">
+                        <a href="<?php echo $prefix; ?>usuarios/frm_guardar_usuario.php" class="submenu-item">Crear Usuario</a>
+                        <a href="<?php echo $prefix; ?>usuarios/listado_usuarios.php" class="submenu-item">Gestionar Usuarios</a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </nav>
 
@@ -229,6 +389,13 @@ $currentModule = getCurrentModule($currentDir, $currentPage);
         function toggleMobileMenu() {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('mobile-active');
+        }
+
+        // NUEVO: Confirmar logout
+        function confirmarLogout() {
+            if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+                window.location.href = '<?php echo $prefix; ?>logout.php';
+            }
         }
 
         // Cerrar menú móvil al hacer clic fuera

@@ -20,8 +20,7 @@ try {
 		)
 	);
 	
-	// Configurar zona horaria de Paraguay (UTC-4)
-	$conexion->exec("SET time_zone = '-04:00'");
+
 	
 } catch(Exception $e) {
 	// En producción, NO mostrar el error real al usuario

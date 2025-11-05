@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 03, 2025 at 01:39 AM
+-- Generation Time: Nov 05, 2025 at 04:07 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.26
 
@@ -38,40 +38,42 @@ CREATE TABLE `caja` (
   `observaciones` text,
   `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `usuario_registro` varchar(100) DEFAULT NULL,
-  `movimiento_relacionado` int DEFAULT NULL
+  `movimiento_relacionado` int DEFAULT NULL,
+  `usuario_modificacion` varchar(100) DEFAULT NULL,
+  `fecha_modificacion` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `caja`
 --
 
-INSERT INTO `caja` (`id`, `tipo_movimiento`, `categoria`, `id_referencia`, `concepto`, `monto`, `fecha_movimiento`, `observaciones`, `fecha_registro`, `usuario_registro`, `movimiento_relacionado`) VALUES
-(1, 'EGRESO', 'COMPRA', 1, 'COMPRA #1 - OFIMARKET', 1400000.00, '2025-10-08', NULL, '2025-10-08 20:07:39', NULL, NULL),
-(2, 'EGRESO', 'COMPRA', 2, 'COMPRA #2 - ALAMO ORIGI', 60000.00, '2025-10-08', NULL, '2025-10-08 20:10:31', NULL, NULL),
-(3, 'EGRESO', 'COMPRA', 3, 'COMPRA #3 - SANTEI', 100000.00, '2025-10-08', NULL, '2025-10-08 20:13:02', NULL, NULL),
-(4, 'EGRESO', 'COMPRA', 4, 'COMPRA #4 - ALAMON\'T', 19000.00, '2025-10-08', NULL, '2025-10-08 20:15:32', NULL, NULL),
-(5, 'EGRESO', 'COMPRA', 5, 'COMPRA #5 - OFIMARKET', 350000.00, '2025-10-08', NULL, '2025-10-08 20:18:04', NULL, NULL),
-(6, 'EGRESO', 'COMPRA', 6, 'COMPRA #6 - OFIMARKET', 515000.00, '2025-10-08', NULL, '2025-10-08 20:20:15', NULL, NULL),
-(7, 'EGRESO', 'COMPRA', 7, 'COMPRA #7 - OFIMARKET', 3250000.00, '2025-10-09', NULL, '2025-10-09 19:53:54', NULL, NULL),
-(9, 'EGRESO', 'COMPRA', 9, 'COMPRA #9 - ALAMO2', 3040000.00, '2025-10-12', NULL, '2025-10-12 00:44:06', NULL, NULL),
-(13, 'EGRESO', 'COMPRA', 18, 'COMPRA #18 - ALAMO ORIGI', 20000.00, '2025-10-15', NULL, '2025-10-15 00:49:36', NULL, NULL),
-(15, 'INGRESO', 'VENTA', 4, 'VENTA #4 - KEVIN SEBASTIAN CABALLERO GODOY', 3000.00, '2025-10-16', NULL, '2025-10-15 19:57:08', NULL, NULL),
-(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45', NULL, NULL),
-(18, 'INGRESO', 'VENTA', 5, 'VENTA #5 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000001)', 275000.00, '2025-10-19', NULL, '2025-10-19 23:15:33', NULL, NULL),
-(19, 'INGRESO', 'VENTA', 6, 'VENTA #6 - KEVIN SEBASTIAN CABALLERO GODOY', 66000.00, '2025-10-22', NULL, '2025-10-22 00:39:29', NULL, NULL),
-(20, 'INGRESO', 'VENTA', 7, 'VENTA #7 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000007)', 746075.00, '2025-10-22', NULL, '2025-10-22 21:15:59', NULL, NULL),
-(21, 'INGRESO', 'VENTA', 8, 'VENTA #8 - KEVIN SEBASTIAN CABALLERO GODOY', 550000.00, '2025-10-22', NULL, '2025-10-22 21:17:48', NULL, NULL),
-(23, 'INGRESO', 'VENTA', 10, 'VENTA #10 - KEVIN SEBASTIAN CABALLERO GODOY (FACTURA: 001-001-0000835)', 3000.00, '2025-10-23', NULL, '2025-10-23 22:56:26', NULL, NULL),
-(24, 'INGRESO', 'VENTA', 11, 'VENTA #11 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000836)', 1130000.00, '2025-10-24', NULL, '2025-10-24 00:09:48', NULL, NULL),
-(25, 'INGRESO', 'VENTA', 12, 'VENTA #12 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000837)', 250000.00, '2025-10-24', NULL, '2025-10-24 21:42:36', NULL, NULL),
-(26, 'INGRESO', 'VENTA', 13, 'VENTA #13 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000838)', 1575000.00, '2025-10-24', NULL, '2025-10-24 22:17:40', NULL, NULL),
-(27, 'INGRESO', 'VENTA', 14, 'VENTA #14 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000839)', 27000.00, '2025-10-24', NULL, '2025-10-24 22:43:22', NULL, NULL),
-(29, 'EGRESO', 'OTRO', 12, 'ANULACIÓN FACTURA #12 - MAGNA ADELINA GODOY OLMEDO (001-001-0000837)', 250000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: Prueba 1', '2025-11-02 17:21:45', 'ADMIN', 25),
-(30, 'EGRESO', 'OTRO', 14, 'ANULACIÓN FACTURA #14 - MAGNA ADELINA GODOY OLMEDO (001-001-0000839)', 27000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wery', '2025-11-02 17:23:03', 'ADMIN', 27),
-(31, 'EGRESO', 'OTRO', 11, 'ANULACIÓN FACTURA #11 - MAGNA ADELINA GODOY OLMEDO (001-001-0000836)', 1130000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba23', '2025-11-02 20:09:29', 'ADMIN', 24),
-(32, 'EGRESO', 'OTRO', 13, 'ANULACIÓN FACTURA #13 - MAGNA ADELINA GODOY OLMEDO (001-001-0000838)', 1575000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wdsfghkjl', '2025-11-02 20:13:10', 'ADMIN', 26),
-(33, 'EGRESO', 'OTRO', 10, 'ANULACIÓN FACTURA #10 - KEVIN SEBASTIAN CABALLERO GODOY (001-001-0000835)', 3000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba444', '2025-11-03 01:21:03', 'ADMIN', 23),
-(34, 'EGRESO', 'OTRO', 6, 'ANULACIÓN FACTURA #6 - KEVIN SEBASTIAN CABALLERO GODOY (N/A)', 66000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wergh', '2025-11-03 01:21:49', 'ADMIN', 19);
+INSERT INTO `caja` (`id`, `tipo_movimiento`, `categoria`, `id_referencia`, `concepto`, `monto`, `fecha_movimiento`, `observaciones`, `fecha_registro`, `usuario_registro`, `movimiento_relacionado`, `usuario_modificacion`, `fecha_modificacion`) VALUES
+(1, 'EGRESO', 'COMPRA', 1, 'COMPRA #1 - OFIMARKET', 1400000.00, '2025-10-08', NULL, '2025-10-08 20:07:39', NULL, NULL, NULL, NULL),
+(2, 'EGRESO', 'COMPRA', 2, 'COMPRA #2 - ALAMO ORIGI', 60000.00, '2025-10-08', NULL, '2025-10-08 20:10:31', NULL, NULL, NULL, NULL),
+(3, 'EGRESO', 'COMPRA', 3, 'COMPRA #3 - SANTEI', 100000.00, '2025-10-08', NULL, '2025-10-08 20:13:02', NULL, NULL, NULL, NULL),
+(4, 'EGRESO', 'COMPRA', 4, 'COMPRA #4 - ALAMON\'T', 19000.00, '2025-10-08', NULL, '2025-10-08 20:15:32', NULL, NULL, NULL, NULL),
+(5, 'EGRESO', 'COMPRA', 5, 'COMPRA #5 - OFIMARKET', 350000.00, '2025-10-08', NULL, '2025-10-08 20:18:04', NULL, NULL, NULL, NULL),
+(6, 'EGRESO', 'COMPRA', 6, 'COMPRA #6 - OFIMARKET', 515000.00, '2025-10-08', NULL, '2025-10-08 20:20:15', NULL, NULL, NULL, NULL),
+(9, 'EGRESO', 'COMPRA', 9, 'COMPRA #9 - ALAMO2', 3040000.00, '2025-10-12', NULL, '2025-10-12 00:44:06', NULL, NULL, NULL, NULL),
+(13, 'EGRESO', 'COMPRA', 18, 'COMPRA #18 - ALAMO ORIGI', 20000.00, '2025-10-15', NULL, '2025-10-15 00:49:36', NULL, NULL, NULL, NULL),
+(15, 'INGRESO', 'VENTA', 4, 'VENTA #4 - KEVIN SEBASTIAN CABALLERO GODOY', 3000.00, '2025-10-16', NULL, '2025-10-15 19:57:08', NULL, NULL, NULL, NULL),
+(17, 'EGRESO', 'COMPRA', 20, 'COMPRA #20 - ALAMO ORIGI', 200000.00, '2025-10-15', NULL, '2025-10-15 20:07:45', NULL, NULL, NULL, NULL),
+(18, 'INGRESO', 'VENTA', 5, 'VENTA #5 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000001)', 275000.00, '2025-10-19', NULL, '2025-10-19 23:15:33', NULL, NULL, NULL, NULL),
+(19, 'INGRESO', 'VENTA', 6, 'VENTA #6 - KEVIN SEBASTIAN CABALLERO GODOY', 66000.00, '2025-10-22', NULL, '2025-10-22 00:39:29', NULL, NULL, NULL, NULL),
+(20, 'INGRESO', 'VENTA', 7, 'VENTA #7 - KEVIN SEBASTIAN CABALLERO GODOY (Ticket: 0000007)', 746075.00, '2025-10-22', NULL, '2025-10-22 21:15:59', NULL, NULL, NULL, NULL),
+(21, 'INGRESO', 'VENTA', 8, 'VENTA #8 - KEVIN SEBASTIAN CABALLERO GODOY', 550000.00, '2025-10-22', NULL, '2025-10-22 21:17:48', NULL, NULL, NULL, NULL),
+(23, 'INGRESO', 'VENTA', 10, 'VENTA #10 - KEVIN SEBASTIAN CABALLERO GODOY (FACTURA: 001-001-0000835)', 3000.00, '2025-10-23', NULL, '2025-10-23 22:56:26', NULL, NULL, NULL, NULL),
+(24, 'INGRESO', 'VENTA', 11, 'VENTA #11 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000836)', 1130000.00, '2025-10-24', NULL, '2025-10-24 00:09:48', NULL, NULL, NULL, NULL),
+(25, 'INGRESO', 'VENTA', 12, 'VENTA #12 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000837)', 250000.00, '2025-10-24', NULL, '2025-10-24 21:42:36', NULL, NULL, NULL, NULL),
+(26, 'INGRESO', 'VENTA', 13, 'VENTA #13 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000838)', 1575000.00, '2025-10-24', NULL, '2025-10-24 22:17:40', NULL, NULL, NULL, NULL),
+(27, 'INGRESO', 'VENTA', 14, 'VENTA #14 - MAGNA ADELINA GODOY OLMEDO (FACTURA: 001-001-0000839)', 27000.00, '2025-10-24', NULL, '2025-10-24 22:43:22', NULL, NULL, NULL, NULL),
+(29, 'EGRESO', 'OTRO', 12, 'ANULACIÓN FACTURA #12 - MAGNA ADELINA GODOY OLMEDO (001-001-0000837)', 250000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: Prueba 1', '2025-11-02 17:21:45', 'ADMIN', 25, NULL, NULL),
+(30, 'EGRESO', 'OTRO', 14, 'ANULACIÓN FACTURA #14 - MAGNA ADELINA GODOY OLMEDO (001-001-0000839)', 27000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wery', '2025-11-02 17:23:03', 'ADMIN', 27, NULL, NULL),
+(31, 'EGRESO', 'OTRO', 11, 'ANULACIÓN FACTURA #11 - MAGNA ADELINA GODOY OLMEDO (001-001-0000836)', 1130000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba23', '2025-11-02 20:09:29', 'ADMIN', 24, NULL, NULL),
+(32, 'EGRESO', 'OTRO', 13, 'ANULACIÓN FACTURA #13 - MAGNA ADELINA GODOY OLMEDO (001-001-0000838)', 1575000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wdsfghkjl', '2025-11-02 20:13:10', 'ADMIN', 26, NULL, NULL),
+(33, 'EGRESO', 'OTRO', 10, 'ANULACIÓN FACTURA #10 - KEVIN SEBASTIAN CABALLERO GODOY (001-001-0000835)', 3000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: prueba444', '2025-11-03 01:21:03', 'ADMIN', 23, NULL, NULL),
+(34, 'EGRESO', 'OTRO', 6, 'ANULACIÓN FACTURA #6 - KEVIN SEBASTIAN CABALLERO GODOY (N/A)', 66000.00, '2025-11-02', 'Anulado por: ADMIN\nMotivo: wergh', '2025-11-03 01:21:49', 'ADMIN', 19, NULL, NULL),
+(35, 'EGRESO', 'COMPRA', 21, 'COMPRA #21 - ALAMO ORIGI (Factura: 4567887654)', 180000.00, '2025-11-05', NULL, '2025-11-05 01:01:54', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -103,7 +105,11 @@ CREATE TABLE `cierres_caja` (
 --
 
 INSERT INTO `cierres_caja` (`id`, `fecha_apertura`, `fecha_cierre`, `saldo_inicial`, `saldo_final`, `total_ingresos`, `total_egresos`, `saldo_sistema`, `saldo_fisico`, `diferencia`, `observaciones_apertura`, `observaciones_cierre`, `estado`, `usuario_apertura`, `usuario_cierre`, `fecha_registro`) VALUES
-(1, '2025-10-26 18:47:00', '2025-10-26 18:47:00', 10000.00, 10000.00, 0.00, 0.00, 10000.00, 10000.00, 0.00, NULL, NULL, 'CERRADA', 'Kevin', 'Kevin', '2025-10-27 00:47:36');
+(1, '2025-10-26 18:47:00', '2025-10-26 18:47:00', 10000.00, 10000.00, 0.00, 0.00, 10000.00, 10000.00, 0.00, NULL, NULL, 'CERRADA', 'Kevin', 'Kevin', '2025-10-27 00:47:36'),
+(2, '2025-11-04 10:39:00', '2025-11-04 10:40:00', 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, NULL, 'CERRADA', 'Administrador', 'Administrador', '2025-11-04 16:39:47'),
+(3, '2025-11-04 19:01:00', '2025-11-04 19:02:00', 500000.00, 320000.00, 0.00, 180000.00, 320000.00, 320000.00, 0.00, NULL, NULL, 'CERRADA', 'Administrador', 'Administrador', '2025-11-05 01:01:27'),
+(4, '2025-11-04 19:02:00', '2025-11-04 19:03:00', 100000.00, 100000.00, 0.00, 180000.00, -80000.00, 100000.00, 180000.00, NULL, NULL, 'CERRADA', 'Administrador', 'Administrador', '2025-11-05 01:02:47'),
+(5, '2025-11-04 19:05:00', '2025-11-04 19:05:00', 0.00, 0.00, 0.00, 180000.00, -180000.00, 0.00, 180000.00, NULL, NULL, 'CERRADA', 'Administrador', 'Administrador', '2025-11-05 01:05:41');
 
 -- --------------------------------------------------------
 
@@ -120,21 +126,25 @@ CREATE TABLE `clientes` (
   `correo_cliente` varchar(150) DEFAULT NULL,
   `direccion_cliente` varchar(150) DEFAULT NULL,
   `fecha_cliente` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `estado_cliente` tinyint NOT NULL DEFAULT '1'
+  `usuario_registro` varchar(100) DEFAULT NULL,
+  `estado_cliente` tinyint NOT NULL DEFAULT '1',
+  `usuario_modificacion` varchar(100) DEFAULT NULL,
+  `fecha_modificacion` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `clientes`
 --
 
-INSERT INTO `clientes` (`id`, `nombre_cliente`, `apellido_cliente`, `ci_ruc_cliente`, `telefono_cliente`, `correo_cliente`, `direccion_cliente`, `fecha_cliente`, `estado_cliente`) VALUES
-(1, 'KEVIN SEBASTIAN', 'CABALLERO GODOY', '123423', '1000000', 'ejemplo@gmail.com', 'CALLE 1 C/ CALLE 3', '2025-09-17 22:42:30', 1),
-(2, 'SDADS', 'ADASD', '3423423', '', '', '', '2025-09-21 01:31:03', 1),
-(3, 'KEVIN SEBASTIAN', 'CABALLERO GODOY', '3455545', '0909090909', 'ejemplo@gmail.com', 'CALLE 1 C/ CALLE 2', '2025-09-21 03:46:17', 1),
-(4, 'PRUEBA', 'PP', '3243', '', '', '', '2025-09-21 06:21:17', 1),
-(5, 'PRUEBA4', 'DFFSFDSS', '123456789', '', '', '', '2025-09-21 13:43:29', 1),
-(6, 'GHDFB', 'SDFSDFGDSDFSDF', '3564', '', 'sdfsdfsdf@gmail.com', '', '2025-09-24 19:49:17', 1),
-(7, 'MAGNA ADELINA', 'GODOY OLMEDO', '4305336', '0972617447', 'magnitagodoy2016@gmail.com', 'SAN JUAN', '2025-10-24 00:08:15', 1);
+INSERT INTO `clientes` (`id`, `nombre_cliente`, `apellido_cliente`, `ci_ruc_cliente`, `telefono_cliente`, `correo_cliente`, `direccion_cliente`, `fecha_cliente`, `usuario_registro`, `estado_cliente`, `usuario_modificacion`, `fecha_modificacion`) VALUES
+(1, 'KEVIN SEBASTIAN', 'CABALLERO GODOY', '123423', '1000000', 'ejemplo@gmail.com', 'CALLE 1 C/ CALLE 3', '2025-09-17 22:42:30', NULL, 1, NULL, NULL),
+(2, 'SDADS', 'ADASD', '3423423', '', '', '', '2025-09-21 01:31:03', NULL, 1, NULL, NULL),
+(3, 'KEVIN SEBASTIAN', 'CABALLERO GODOY', '3455545', '0909090909', 'ejemplo@gmail.com', 'CALLE 1 C/ CALLE 2', '2025-09-21 03:46:17', NULL, 1, NULL, NULL),
+(4, 'PRUEBA', 'PP', '3243', '', '', '', '2025-09-21 06:21:17', NULL, 1, NULL, NULL),
+(5, 'PRUEBA4', 'DFFSFDSS', '123456789', '', '', '', '2025-09-21 13:43:29', NULL, 1, NULL, NULL),
+(6, 'GHDFB', 'SDFSDFGDSDFSDF', '3564', '', 'sdfsdfsdf@gmail.com', '', '2025-09-24 19:49:17', NULL, 1, NULL, NULL),
+(7, 'MAGNA ADELINA', 'GODOY OLMEDO', '4305336', '0972617447', 'magnitagodoy2016@gmail.com', 'SAN JUAN', '2025-10-24 00:08:15', NULL, 1, NULL, NULL),
+(8, 'LUNA YOMAIRA', 'CABALLERO GODOY', '4444444', '45678976443', 'lunananana@gmail.com', 'SDASDASDADS', '2025-11-04 00:21:04', NULL, 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -150,29 +160,30 @@ CREATE TABLE `compras` (
   `total_compra` decimal(10,2) NOT NULL DEFAULT '0.00',
   `observaciones` text,
   `estado_compra` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1=Activa, 0=Anulada',
-  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_registro` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `compras`
 --
 
-INSERT INTO `compras` (`id`, `id_proveedor`, `numero_compra`, `fecha_compra`, `total_compra`, `observaciones`, `estado_compra`, `fecha_registro`) VALUES
-(1, 4, NULL, '2025-10-08', 1400000.00, NULL, 1, '2025-10-08 20:07:39'),
-(2, 2, NULL, '2025-10-08', 60000.00, NULL, 1, '2025-10-08 20:10:31'),
-(3, 6, NULL, '2025-10-08', 100000.00, NULL, 1, '2025-10-08 20:13:02'),
-(4, 1, NULL, '2025-10-08', 19000.00, '', 1, '2025-10-08 20:15:32'),
-(5, 4, NULL, '2025-10-08', 350000.00, '', 1, '2025-10-08 20:18:04'),
-(6, 4, NULL, '2025-10-08', 515000.00, '', 1, '2025-10-08 20:20:15'),
-(7, 4, NULL, '2025-10-09', 3250000.00, '', 1, '2025-10-09 19:53:54'),
-(9, 3, NULL, '2025-10-12', 3040000.00, '', 1, '2025-10-12 00:44:06'),
-(13, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:24:46'),
-(14, 1, NULL, '2025-10-15', 1000.00, '', 1, '2025-10-15 00:42:53'),
-(15, 1, '4567', '2025-10-13', 100000.00, '', 1, '2025-10-15 00:43:32'),
-(16, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:45:46'),
-(17, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:48:49'),
-(18, 2, NULL, '2025-10-15', 20000.00, '', 1, '2025-10-15 00:49:36'),
-(20, 2, NULL, '2025-10-15', 200000.00, '', 1, '2025-10-15 20:07:45');
+INSERT INTO `compras` (`id`, `id_proveedor`, `numero_compra`, `fecha_compra`, `total_compra`, `observaciones`, `estado_compra`, `fecha_registro`, `usuario_registro`) VALUES
+(1, 4, NULL, '2025-10-08', 1400000.00, NULL, 1, '2025-10-08 20:07:39', NULL),
+(2, 2, NULL, '2025-10-08', 60000.00, NULL, 1, '2025-10-08 20:10:31', NULL),
+(3, 6, NULL, '2025-10-08', 100000.00, NULL, 1, '2025-10-08 20:13:02', NULL),
+(4, 1, NULL, '2025-10-08', 19000.00, '', 1, '2025-10-08 20:15:32', NULL),
+(5, 4, NULL, '2025-10-08', 350000.00, '', 1, '2025-10-08 20:18:04', NULL),
+(6, 4, NULL, '2025-10-08', 515000.00, '', 1, '2025-10-08 20:20:15', NULL),
+(9, 3, NULL, '2025-10-12', 3040000.00, '', 1, '2025-10-12 00:44:06', NULL),
+(13, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:24:46', NULL),
+(14, 1, NULL, '2025-10-15', 1000.00, '', 1, '2025-10-15 00:42:53', NULL),
+(15, 1, '4567', '2025-10-13', 100000.00, '', 1, '2025-10-15 00:43:32', NULL),
+(16, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:45:46', NULL),
+(17, 3, NULL, '2025-10-15', 19000.00, '', 1, '2025-10-15 00:48:49', NULL),
+(18, 2, NULL, '2025-10-15', 20000.00, '', 1, '2025-10-15 00:49:36', NULL),
+(20, 2, NULL, '2025-10-15', 200000.00, '', 1, '2025-10-15 20:07:45', NULL),
+(21, 2, '4567887654', '2025-11-05', 180000.00, '', 1, '2025-11-05 01:01:54', NULL);
 
 -- --------------------------------------------------------
 
@@ -285,10 +296,10 @@ INSERT INTO `detalle_compras` (`id`, `id_compra`, `id_producto`, `cantidad`, `pr
 (5, 5, 3, 14, 25000.00, 350000.00),
 (6, 6, 3, 20, 25000.00, 500000.00),
 (7, 6, 1, 10, 1500.00, 15000.00),
-(8, 7, 3, 130, 25000.00, 3250000.00),
 (10, 9, 3, 160, 19000.00, 3040000.00),
 (13, 18, 3, 1, 20000.00, 20000.00),
-(15, 20, 3, 10, 20000.00, 200000.00);
+(15, 20, 3, 10, 20000.00, 200000.00),
+(17, 21, 3, 9, 20000.00, 180000.00);
 
 -- --------------------------------------------------------
 
@@ -463,7 +474,117 @@ INSERT INTO `historial_stock` (`id`, `id_producto`, `tipo_movimiento`, `cantidad
 (58, 6, 'ENTRADA', 10, 120, 130, 'ANULACIÓN FACTURA #13 - Usuario: ADMIN - Motivo: wdsfghkjl', 13, '2025-11-02 20:13:10'),
 (59, 2, 'ENTRADA', 30, 310, 340, 'ANULACIÓN FACTURA #13 - Usuario: ADMIN - Motivo: wdsfghkjl', 13, '2025-11-02 20:13:10'),
 (60, 1, 'ENTRADA', 1, 29, 30, 'ANULACIÓN FACTURA #10 - Usuario: ADMIN - Motivo: prueba444', 10, '2025-11-03 01:21:03'),
-(61, 6, 'ENTRADA', 10, 130, 140, 'ANULACIÓN FACTURA #6 - Usuario: ADMIN - Motivo: wergh', 6, '2025-11-03 01:21:49');
+(61, 6, 'ENTRADA', 10, 130, 140, 'ANULACIÓN FACTURA #6 - Usuario: ADMIN - Motivo: wergh', 6, '2025-11-03 01:21:49'),
+(62, 3, 'ENTRADA', 9, 421, 430, 'COMPRA #21 - Proveedor ID: 2', 21, '2025-11-05 01:01:54');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `log_actividades`
+--
+
+CREATE TABLE `log_actividades` (
+  `id` int NOT NULL,
+  `usuario` varchar(100) NOT NULL,
+  `accion` varchar(100) NOT NULL COMMENT 'Ej: CREAR, EDITAR, ELIMINAR, LOGIN, LOGOUT',
+  `modulo` varchar(50) NOT NULL COMMENT 'Ej: CLIENTES, PRODUCTOS, VENTAS, CAJA',
+  `descripcion` text NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `datos_anteriores` text COMMENT 'JSON con datos antes del cambio',
+  `datos_nuevos` text COMMENT 'JSON con datos después del cambio',
+  `fecha_hora` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `log_actividades`
+--
+
+INSERT INTO `log_actividades` (`id`, `usuario`, `accion`, `modulo`, `descripcion`, `ip_address`, `user_agent`, `datos_anteriores`, `datos_nuevos`, `fecha_hora`) VALUES
+(1, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-04 00:12:58'),
+(2, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-04 16:36:20'),
+(3, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:36:20'),
+(4, 'Administrador', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-04 16:36:51'),
+(5, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-04 16:36:55'),
+(6, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:36:55'),
+(7, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:37:15'),
+(8, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:37:26'),
+(9, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a apertura de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:39:35'),
+(10, 'Administrador', 'APERTURA_CAJA', 'CAJA', 'Apertura de caja #2 - Saldo inicial: ₲ 0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id_cierre\":\"2\",\"saldo_inicial\":0,\"fecha_apertura\":\"2025-11-04 10:39:00\",\"observaciones\":null}', '2025-11-04 16:39:47'),
+(11, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:39:55'),
+(12, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a cierre de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:40:02'),
+(13, 'Administrador', 'CIERRE_CAJA', 'CAJA', 'Cierre de caja #2 - Diferencia: ₲ 0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', '{\"saldo_inicial\":0,\"estado_anterior\":\"ABIERTA\"}', '{\"id_cierre\":2,\"saldo_sistema\":0,\"saldo_fisico\":0,\"diferencia\":0,\"total_ingresos\":0,\"total_egresos\":0,\"estado_nuevo\":\"CERRADA\"}', '2025-11-04 16:40:13'),
+(14, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 16:40:19'),
+(15, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-04 21:15:22'),
+(16, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-04 21:15:23'),
+(17, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 00:59:10'),
+(18, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 00:59:10'),
+(19, 'Administrador', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 00:59:58'),
+(20, 'Administrador', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:00:04'),
+(21, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:00:04'),
+(22, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a apertura de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:01:21'),
+(23, 'Administrador', 'APERTURA_CAJA', 'CAJA', 'Apertura de caja #3 - Saldo inicial: ₲ 500.000', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id_cierre\":\"3\",\"saldo_inicial\":500000,\"fecha_apertura\":\"2025-11-04 19:01:00\",\"observaciones\":null}', '2025-11-05 01:01:27'),
+(24, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:01:28'),
+(25, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:01:56'),
+(26, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a cierre de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:02:23'),
+(27, 'Administrador', 'CIERRE_CAJA', 'CAJA', 'Cierre de caja #3 - Diferencia: ₲ 0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', '{\"saldo_inicial\":500000,\"estado_anterior\":\"ABIERTA\"}', '{\"id_cierre\":3,\"saldo_sistema\":320000,\"saldo_fisico\":320000,\"diferencia\":0,\"total_ingresos\":0,\"total_egresos\":180000,\"estado_nuevo\":\"CERRADA\"}', '2025-11-05 01:02:38'),
+(28, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:02:40'),
+(29, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a apertura de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:02:40'),
+(30, 'Administrador', 'APERTURA_CAJA', 'CAJA', 'Apertura de caja #4 - Saldo inicial: ₲ 100.000', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id_cierre\":\"4\",\"saldo_inicial\":100000,\"fecha_apertura\":\"2025-11-04 19:02:00\",\"observaciones\":null}', '2025-11-05 01:02:47'),
+(31, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:02:48'),
+(32, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a cierre de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:03:04'),
+(33, 'Administrador', 'CIERRE_CAJA', 'CAJA', 'Cierre de caja #4 - Diferencia: ₲ 180.000', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', '{\"saldo_inicial\":100000,\"estado_anterior\":\"ABIERTA\"}', '{\"id_cierre\":4,\"saldo_sistema\":-80000,\"saldo_fisico\":100000,\"diferencia\":180000,\"total_ingresos\":0,\"total_egresos\":180000,\"estado_nuevo\":\"CERRADA\"}', '2025-11-05 01:03:29'),
+(34, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:03:31'),
+(35, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a apertura de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:05:35'),
+(36, 'Administrador', 'APERTURA_CAJA', 'CAJA', 'Apertura de caja #5 - Saldo inicial: ₲ 0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id_cierre\":\"5\",\"saldo_inicial\":0,\"fecha_apertura\":\"2025-11-04 19:05:00\",\"observaciones\":null}', '2025-11-05 01:05:41'),
+(37, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:05:42'),
+(38, 'Administrador', 'ACCESO', 'CAJA', 'Acceso a cierre de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:05:50'),
+(39, 'Administrador', 'CIERRE_CAJA', 'CAJA', 'Cierre de caja #5 - Diferencia: ₲ 180.000', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', '{\"saldo_inicial\":0,\"estado_anterior\":\"ABIERTA\"}', '{\"id_cierre\":5,\"saldo_sistema\":-180000,\"saldo_fisico\":0,\"diferencia\":180000,\"total_ingresos\":0,\"total_egresos\":180000,\"estado_nuevo\":\"CERRADA\"}', '2025-11-05 01:05:57'),
+(40, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:06:01'),
+(41, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:06:38'),
+(42, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:06:39'),
+(43, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:06:39'),
+(44, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:06:41'),
+(45, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:07:03'),
+(46, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:11:01'),
+(47, 'Administrador', 'ACCESO', 'USUARIOS', 'Acceso al formulario de creación de usuario', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:11:05'),
+(48, 'Administrador', 'CREAR', 'USUARIOS', 'Usuario creado: KEVIN CABALLERO (Login: kevin, Rol: ADMINISTRADOR)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id\":\"2\",\"nombre\":\"KEVIN CABALLERO\",\"usuario\":\"kevin\",\"rol\":\"ADMINISTRADOR\",\"estado\":1}', '2025-11-05 01:14:18'),
+(49, 'Administrador', 'CREAR', 'USUARIOS', 'Usuario creado: KEVIN CABALLERO 2 (Login: kevin2, Rol: ADMINISTRADOR)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id\":\"3\",\"nombre\":\"KEVIN CABALLERO 2\",\"usuario\":\"kevin2\",\"rol\":\"ADMINISTRADOR\",\"estado\":1}', '2025-11-05 01:14:35'),
+(50, 'Administrador', 'CREAR', 'USUARIOS', 'Usuario creado: KEVIN CABALLERO 3 (Login: kevin3, Rol: ADMINISTRADOR)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id\":\"4\",\"nombre\":\"KEVIN CABALLERO 3\",\"usuario\":\"kevin3\",\"rol\":\"ADMINISTRADOR\",\"estado\":1}', '2025-11-05 01:14:47'),
+(51, 'Administrador', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:14:50'),
+(52, 'Administrador', 'ACCESO', 'USUARIOS', 'Acceso al formulario de creación de usuario', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:15:00'),
+(53, 'Administrador', 'CREAR', 'USUARIOS', 'Usuario creado: KEVIN CABALLERO 4 (Login: admin2, Rol: VENDEDOR)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id\":\"5\",\"nombre\":\"KEVIN CABALLERO 4\",\"usuario\":\"admin2\",\"rol\":\"VENDEDOR\",\"estado\":1}', '2025-11-05 01:15:29'),
+(54, 'Administrador', 'ACCESO', 'USUARIOS', 'Acceso al listado de usuarios', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:15:32'),
+(55, 'Administrador', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:15:43'),
+(56, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:15:49'),
+(57, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:15:49'),
+(58, 'KEVIN CABALLERO', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:15:58'),
+(59, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:16:35'),
+(60, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:16:35'),
+(61, 'KEVIN CABALLERO', 'ACCESO', 'CAJA', 'Acceso a apertura de caja', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:16:39'),
+(62, 'KEVIN CABALLERO', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:16:52'),
+(63, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:17:35'),
+(64, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:17:35'),
+(65, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso al listado de usuarios', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:17:40'),
+(66, 'KEVIN CABALLERO', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:19:14'),
+(67, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:19:34'),
+(68, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:19:34'),
+(69, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso al formulario de creación de usuario', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:19:37'),
+(70, 'KEVIN CABALLERO', 'CREAR', 'USUARIOS', 'Usuario creado: VENDEDOR (Login: vendedor, Rol: VENDEDOR)', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, '{\"id\":\"6\",\"nombre\":\"VENDEDOR\",\"usuario\":\"vendedor\",\"rol\":\"VENDEDOR\",\"estado\":1}', '2025-11-05 01:19:52'),
+(71, 'KEVIN CABALLERO', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:19:55'),
+(72, 'VENDEDOR', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:20:03'),
+(73, 'VENDEDOR', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:20:03'),
+(74, 'VENDEDOR', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:20:15'),
+(75, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 01:32:24'),
+(76, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 01:32:24'),
+(77, 'KEVIN CABALLERO', 'LOGOUT', 'SISTEMA', 'Cierre de sesión', '::1', NULL, NULL, NULL, '2025-11-05 01:32:32'),
+(78, 'KEVIN CABALLERO', 'LOGIN', 'SISTEMA', 'Inicio de sesión exitoso', '::1', NULL, NULL, NULL, '2025-11-05 16:06:24'),
+(79, 'KEVIN CABALLERO', 'ACCESO', 'DASHBOARD', 'Acceso al panel principal', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:06:24'),
+(80, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso al listado de usuarios', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:06:37'),
+(81, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso a edición de usuario: KEVIN CABALLERO 4', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:06:54'),
+(82, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso al listado de usuarios', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:07:07'),
+(83, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso a edición de usuario: KEVIN CABALLERO 4', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:07:12'),
+(84, 'KEVIN CABALLERO', 'ACCESO', 'USUARIOS', 'Acceso a edición de usuario: KEVIN CABALLERO 3', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', NULL, NULL, '2025-11-05 16:07:15');
 
 -- --------------------------------------------------------
 
@@ -507,7 +628,8 @@ CREATE TABLE `pagos_compra` (
 
 INSERT INTO `pagos_compra` (`id`, `id_compra`, `forma_pago`, `cuotas`, `monto_cuota`, `fecha_vencimiento`, `fecha_registro`) VALUES
 (2, 18, 'CONTADO', NULL, NULL, NULL, '2025-10-15 00:49:36'),
-(4, 20, 'CREDITO', 10, 20000.00, '2025-10-14', '2025-10-15 20:07:45');
+(4, 20, 'CREDITO', 10, 20000.00, '2025-10-14', '2025-10-15 20:07:45'),
+(5, 21, 'CONTADO', NULL, NULL, NULL, '2025-11-05 01:01:54');
 
 -- --------------------------------------------------------
 
@@ -539,19 +661,22 @@ CREATE TABLE `productos` (
   `stock_actual` int DEFAULT '0',
   `stock_minimo` int DEFAULT '5',
   `estado_producto` tinyint(1) DEFAULT '1',
-  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_registro` varchar(100) DEFAULT NULL,
+  `usuario_modificacion` varchar(100) DEFAULT NULL,
+  `fecha_modificacion` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `productos`
 --
 
-INSERT INTO `productos` (`id`, `nombre_producto`, `codigo_producto`, `precio_venta`, `stock_actual`, `stock_minimo`, `estado_producto`, `fecha_registro`) VALUES
-(1, 'BIROME BIC AZUL', '', 3000.00, 30, 10, 1, '2025-09-24 20:39:01'),
-(2, 'RESMA A4', '2343342432', 50000.00, 340, 10, 1, '2025-09-25 21:51:26'),
-(3, 'RESMA A5+', '23456787654', 30000.00, 421, 20, 1, '2025-09-30 21:42:56'),
-(5, 'BORRADOR', '4353456789', 3000.00, 90, 5, 1, '2025-10-15 00:20:00'),
-(6, 'REGLA 30CM', '3456734567', 5000.00, 140, 5, 1, '2025-10-19 15:19:28');
+INSERT INTO `productos` (`id`, `nombre_producto`, `codigo_producto`, `precio_venta`, `stock_actual`, `stock_minimo`, `estado_producto`, `fecha_registro`, `usuario_registro`, `usuario_modificacion`, `fecha_modificacion`) VALUES
+(1, 'BIROME BIC AZUL', '', 3000.00, 30, 10, 1, '2025-09-24 20:39:01', NULL, NULL, NULL),
+(2, 'RESMA A4', '2343342432', 50000.00, 340, 10, 1, '2025-09-25 21:51:26', NULL, NULL, NULL),
+(3, 'RESMA A5+', '23456787654', 30000.00, 430, 20, 1, '2025-09-30 21:42:56', NULL, NULL, '2025-11-05 01:01:54'),
+(5, 'BORRADOR', '4353456789', 3000.00, 90, 5, 1, '2025-10-15 00:20:00', NULL, NULL, NULL),
+(6, 'REGLA 30CM', '3456734567', 5000.00, 140, 5, 1, '2025-10-19 15:19:28', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -565,20 +690,23 @@ CREATE TABLE `proveedores` (
   `telefono_proveedor` varchar(20) DEFAULT NULL,
   `direccion_proveedor` varchar(200) DEFAULT NULL,
   `estado_proveedor` tinyint(1) NOT NULL DEFAULT '1',
-  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_registro` varchar(100) DEFAULT NULL,
+  `usuario_modificacion` varchar(100) DEFAULT NULL,
+  `fecha_modificacion` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `proveedores`
 --
 
-INSERT INTO `proveedores` (`id`, `nombre_proveedor`, `telefono_proveedor`, `direccion_proveedor`, `estado_proveedor`, `fecha_registro`) VALUES
-(1, 'ALAMON\'T', '13231', 'K', 1, '2025-09-19 00:27:15'),
-(2, 'ALAMO ORIGI', '13231', '', 1, '2025-09-19 00:27:52'),
-(3, 'ALAMO2', '34223', NULL, 1, '2025-09-21 01:30:47'),
-(4, 'OFIMARKET', '1323133', '', 1, '2025-09-21 05:48:58'),
-(6, 'SANTEI', '', 'ECARNAYORK', 1, '2025-09-30 00:21:07'),
-(7, 'OOOOOO', '032032023', 'DSDSFLDSLKÑSDFKLÑ', 1, '2025-10-15 00:21:19');
+INSERT INTO `proveedores` (`id`, `nombre_proveedor`, `telefono_proveedor`, `direccion_proveedor`, `estado_proveedor`, `fecha_registro`, `usuario_registro`, `usuario_modificacion`, `fecha_modificacion`) VALUES
+(1, 'ALAMON\'T', '13231', 'K', 1, '2025-09-19 00:27:15', NULL, NULL, NULL),
+(2, 'ALAMO ORIGI', '13231', '', 1, '2025-09-19 00:27:52', NULL, NULL, NULL),
+(3, 'ALAMO2', '34223', NULL, 1, '2025-09-21 01:30:47', NULL, NULL, NULL),
+(4, 'OFIMARKET', '1323133', '', 1, '2025-09-21 05:48:58', NULL, NULL, NULL),
+(6, 'SANTEI', '', 'ECARNAYORK', 1, '2025-09-30 00:21:07', NULL, NULL, NULL),
+(7, 'OOOOOO', '032032023', 'DSDSFLDSLKÑSDFKLÑ', 1, '2025-10-15 00:21:19', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -646,19 +774,22 @@ CREATE TABLE `servicios` (
   `categoria_servicio` varchar(200) NOT NULL,
   `precio_sugerido` decimal(10,2) DEFAULT '0.00',
   `estado_servicio` tinyint(1) DEFAULT '1',
-  `fecha_ingreso` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_ingreso` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `usuario_registro` varchar(100) DEFAULT NULL,
+  `usuario_modificacion` varchar(100) DEFAULT NULL,
+  `fecha_modificacion` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `servicios`
 --
 
-INSERT INTO `servicios` (`id`, `nombre_servicio`, `categoria_servicio`, `precio_sugerido`, `estado_servicio`, `fecha_ingreso`) VALUES
-(13, 'MANTENIMIENTO DE IMPRESORA', 'MATEMATICA', 0.00, 1, '2025-10-08 18:56:54'),
-(14, 'MANTENIMIENTO DE LAPTOP', 'MATEMATICA', 0.00, 1, '2025-10-08 20:17:21'),
-(15, 'MANTENIMIENTO DE PC DE ESCRITORIO', 'MANTENIMIENTO', 0.00, 1, '2025-10-19 18:52:54'),
-(16, 'IMPRESIóN A COLOR', 'IMPRESIONES', 1000.00, 1, '2025-10-20 22:17:56'),
-(17, 'FOTOCOPIAS', 'IMPRESION', 250.00, 1, '2025-10-20 22:23:14');
+INSERT INTO `servicios` (`id`, `nombre_servicio`, `categoria_servicio`, `precio_sugerido`, `estado_servicio`, `fecha_ingreso`, `usuario_registro`, `usuario_modificacion`, `fecha_modificacion`) VALUES
+(13, 'MANTENIMIENTO DE IMPRESORA', 'MATEMATICA', 0.00, 1, '2025-10-08 18:56:54', NULL, NULL, NULL),
+(14, 'MANTENIMIENTO DE LAPTOP', 'MATEMATICA', 0.00, 1, '2025-10-08 20:17:21', NULL, NULL, NULL),
+(15, 'MANTENIMIENTO DE PC DE ESCRITORIO', 'MANTENIMIENTO', 0.00, 1, '2025-10-19 18:52:54', NULL, NULL, NULL),
+(16, 'IMPRESIóN A COLOR', 'IMPRESIONES', 1000.00, 1, '2025-10-20 22:17:56', NULL, NULL, NULL),
+(17, 'FOTOCOPIAS', 'IMPRESION', 250.00, 1, '2025-10-20 22:23:14', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -673,15 +804,23 @@ CREATE TABLE `usuarios` (
   `password` varchar(255) NOT NULL,
   `rol` enum('ADMINISTRADOR','CAJERO','VENDEDOR') DEFAULT 'VENDEDOR',
   `estado` tinyint(1) DEFAULT '1',
-  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `ultimo_acceso` timestamp NULL DEFAULT NULL,
+  `intentos_fallidos` int DEFAULT '0',
+  `bloqueado_hasta` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `nombre_usuario`, `usuario`, `password`, `rol`, `estado`, `fecha_registro`) VALUES
-(1, 'Administrador', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMINISTRADOR', 1, '2025-11-02 17:16:46');
+INSERT INTO `usuarios` (`id`, `nombre_usuario`, `usuario`, `password`, `rol`, `estado`, `fecha_registro`, `ultimo_acceso`, `intentos_fallidos`, `bloqueado_hasta`) VALUES
+(1, 'Administrador', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMINISTRADOR', 1, '2025-11-02 17:16:46', '2025-11-05 01:00:04', 0, NULL),
+(2, 'KEVIN CABALLERO', 'kevin', '$2y$10$PqxbCX.36728TxpciRKMI.9w4w7lvpXjZYZVjNeMrmSE3FbwVlnBK', 'ADMINISTRADOR', 1, '2025-11-05 01:14:18', '2025-11-05 16:06:24', 0, NULL),
+(3, 'KEVIN CABALLERO 2', 'kevin2', '$2y$10$XzTgdEk0fzbG6buUUB8lBu6eKZsyz4WyU.V1yq4NDjrdsekfUj6W6', 'ADMINISTRADOR', 1, '2025-11-05 01:14:35', NULL, 0, NULL),
+(4, 'KEVIN CABALLERO 3', 'kevin3', '$2y$10$KhhKFJ63yjP6bZLvc9eqJekujIDPwyVVWsEZ61qEoqw1Oeg1ayogS', 'ADMINISTRADOR', 1, '2025-11-05 01:14:47', NULL, 0, NULL),
+(5, 'KEVIN CABALLERO 4', 'admin2', '$2y$10$fXnEE5KuPaxev4ATeBDkDuPxC6a0Yc1cNr9RmLyT/04c4LBzNPWI2', 'VENDEDOR', 1, '2025-11-05 01:15:29', NULL, 0, NULL),
+(6, 'VENDEDOR', 'vendedor', '$2y$10$ZQSxSJ7z0M4vctkrWCeV0u1IFVPo2CtEVcxqBXW5NPsVIIfXgIg5S', 'VENDEDOR', 1, '2025-11-05 01:19:52', '2025-11-05 01:20:03', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -887,6 +1026,15 @@ ALTER TABLE `historial_stock`
   ADD KEY `idx_fecha` (`fecha_movimiento`);
 
 --
+-- Indexes for table `log_actividades`
+--
+ALTER TABLE `log_actividades`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_usuario` (`usuario`),
+  ADD KEY `idx_modulo` (`modulo`),
+  ADD KEY `idx_fecha` (`fecha_hora`);
+
+--
 -- Indexes for table `notas_credito`
 --
 ALTER TABLE `notas_credito`
@@ -969,25 +1117,25 @@ ALTER TABLE `ventas`
 -- AUTO_INCREMENT for table `caja`
 --
 ALTER TABLE `caja`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `cierres_caja`
 --
 ALTER TABLE `cierres_caja`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `compras`
 --
 ALTER TABLE `compras`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `configuracion_sistema`
@@ -1011,7 +1159,7 @@ ALTER TABLE `cuotas_venta`
 -- AUTO_INCREMENT for table `detalle_compras`
 --
 ALTER TABLE `detalle_compras`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `detalle_ventas`
@@ -1029,7 +1177,13 @@ ALTER TABLE `historial_anulaciones`
 -- AUTO_INCREMENT for table `historial_stock`
 --
 ALTER TABLE `historial_stock`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `log_actividades`
+--
+ALTER TABLE `log_actividades`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT for table `notas_credito`
@@ -1041,7 +1195,7 @@ ALTER TABLE `notas_credito`
 -- AUTO_INCREMENT for table `pagos_compra`
 --
 ALTER TABLE `pagos_compra`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pagos_venta`
@@ -1083,7 +1237,7 @@ ALTER TABLE `servicios`
 -- AUTO_INCREMENT for table `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `ventas`

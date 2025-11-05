@@ -1,4 +1,6 @@
 <?php
+include_once "../auth.php";
+
 $mensaje = "";
 $tipo = "";
 $titulo = "";
@@ -6,6 +8,9 @@ $titulo = "";
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include_once "../db.php";
+        
+        // Obtener usuario actual
+        $usuarioActual = getUsuarioActual();
 
         // Recibir datos
         $tipo_movimiento = isset($_POST['tipo_movimiento']) ? $_POST['tipo_movimiento'] : null;
@@ -53,10 +58,10 @@ try {
             throw new Exception("La fecha del movimiento es obligatoria");
         }
 
-        // Insertar movimiento
+        // Insertar movimiento con usuario
         $sentencia = $conexion->prepare("
-            INSERT INTO caja (tipo_movimiento, categoria, concepto, monto, fecha_movimiento, observaciones) 
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO caja (tipo_movimiento, categoria, concepto, monto, fecha_movimiento, observaciones, usuario_registro) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
 
         $resultado = $sentencia->execute([
@@ -65,20 +70,39 @@ try {
             $concepto,
             $monto,
             $fecha_movimiento,
-            $observaciones
+            $observaciones,
+            $usuarioActual['nombre']  // REGISTRAR USUARIO
         ]);
 
         if ($resultado === TRUE) {
             $id_movimiento = $conexion->lastInsertId();
+            
+            // REGISTRAR EN LOG DE ACTIVIDADES
+            registrarActividad(
+                'CREAR',
+                'CAJA',
+                "Movimiento de caja registrado: $tipo_movimiento - $concepto (ID: $id_movimiento)",
+                null,
+                [
+                    'id_movimiento' => $id_movimiento,
+                    'tipo' => $tipo_movimiento,
+                    'categoria' => $categoria,
+                    'concepto' => $concepto,
+                    'monto' => $monto,
+                    'fecha' => $fecha_movimiento
+                ]
+            );
+            
             $titulo = "✅ Movimiento Registrado Exitosamente";
             $icono = $tipo_movimiento === 'INGRESO' ? '💰' : '💸';
-            $mensaje = "El movimiento ha sido registrado correctamente en caja.<br><br>
+            $mensaje = "El movimiento ha sido registrado correctamente en caja por <strong>{$usuarioActual['nombre']}</strong>.<br><br>
                         <strong>Detalles:</strong><br>
                         • ID: <strong>#$id_movimiento</strong><br>
                         • Tipo: <strong>$icono $tipo_movimiento</strong><br>
                         • Concepto: <strong>$concepto</strong><br>
                         • Monto: <strong>₲ " . number_format($monto, 0, ',', '.') . "</strong><br>
-                        • Fecha: <strong>" . date('d/m/Y H:i', strtotime($fecha_movimiento)) . "</strong>";
+                        • Fecha: <strong>" . date('d/m/Y H:i', strtotime($fecha_movimiento)) . "</strong><br>
+                        • Registrado por: <strong>{$usuarioActual['nombre']}</strong>";
             $tipo = "success";
         } else {
             throw new Exception("Error al registrar el movimiento en la base de datos");
@@ -92,6 +116,11 @@ try {
     $titulo = "❌ Error al Registrar Movimiento";
     $mensaje = "No se pudo completar el registro:<br><br>" . htmlspecialchars($e->getMessage());
     $tipo = "error";
+    
+    // Registrar error en log
+    if (isset($usuarioActual)) {
+        registrarActividad('ERROR', 'CAJA', "Error al registrar movimiento: " . $e->getMessage(), null, null);
+    }
 }
 ?>
 

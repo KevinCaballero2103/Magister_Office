@@ -1,3 +1,9 @@
+<?php
+include_once "../auth.php";
+
+// Registrar acceso al módulo
+registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', null, null);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -61,6 +67,14 @@
             transform: scale(1.05);
             box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
         }
+        .info-usuario {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -70,6 +84,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
             if (!mainContent) return console.error('No .main-content');
+
+            const usuarioNombre = '<?php echo addslashes($_SESSION['usuario_nombre']); ?>';
 
             // Fecha/hora actual
             const now = new Date();
@@ -83,6 +99,10 @@
             const formHTML = `
                 <div class="form-container">
                     <h1 class="form-title">💵 Registrar Movimiento de Caja</h1>
+                    
+                    <div class="info-usuario">
+                        👤 Movimiento registrado por: <strong style="color: #f1c40f;">${usuarioNombre}</strong>
+                    </div>
                     
                     <form action="./guardar_movimiento.php" method="post" onsubmit="return validateForm()">
                         <!-- Selector de Tipo -->

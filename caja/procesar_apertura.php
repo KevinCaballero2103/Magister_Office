@@ -1,4 +1,6 @@
 <?php
+include_once "../auth.php";
+
 $mensaje = "";
 $tipo = "";
 $titulo = "";
@@ -6,6 +8,9 @@ $titulo = "";
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include_once "../db.php";
+        
+        // Obtener usuario actual
+        $usuarioActual = getUsuarioActual();
 
         // Verificar que no haya caja abierta
         $sentenciaVerificar = $conexion->prepare("SELECT * FROM cierres_caja WHERE estado = 'ABIERTA'");
@@ -16,7 +21,6 @@ try {
 
         $fecha_apertura = $_POST['fecha_apertura'] ?? null;
         $saldo_inicial = floatval($_POST['saldo_inicial'] ?? 0);
-        $usuario_apertura = trim($_POST['usuario_apertura'] ?? '');
         $observaciones_apertura = trim($_POST['observaciones_apertura'] ?? '') ?: null;
 
         // Convertir fecha a zona horaria Paraguay
@@ -31,25 +35,41 @@ try {
             }
         }
 
-        if (empty($usuario_apertura)) {
-            throw new Exception("El nombre del usuario es obligatorio");
-        }
-
         // Insertar apertura
         $sentencia = $conexion->prepare("
             INSERT INTO cierres_caja (fecha_apertura, saldo_inicial, usuario_apertura, observaciones_apertura, estado)
             VALUES (?, ?, ?, ?, 'ABIERTA')
         ");
 
-        $resultado = $sentencia->execute([$fecha_apertura, $saldo_inicial, $usuario_apertura, $observaciones_apertura]);
+        $resultado = $sentencia->execute([
+            $fecha_apertura, 
+            $saldo_inicial, 
+            $usuarioActual['nombre'],  // USAR USUARIO ACTUAL
+            $observaciones_apertura
+        ]);
 
         if ($resultado) {
             $id_apertura = $conexion->lastInsertId();
+            
+            // REGISTRAR EN LOG DE ACTIVIDADES
+            registrarActividad(
+                'APERTURA_CAJA',
+                'CAJA',
+                "Apertura de caja #$id_apertura - Saldo inicial: ₲ " . number_format($saldo_inicial, 0, ',', '.'),
+                null,
+                [
+                    'id_cierre' => $id_apertura,
+                    'saldo_inicial' => $saldo_inicial,
+                    'fecha_apertura' => $fecha_apertura,
+                    'observaciones' => $observaciones_apertura
+                ]
+            );
+            
             $titulo = "✅ Caja Abierta Exitosamente";
             $mensaje = "La caja ha sido abierta correctamente.<br><br>
                         <strong>Detalles:</strong><br>
                         • ID Apertura: <strong>#$id_apertura</strong><br>
-                        • Usuario: <strong>$usuario_apertura</strong><br>
+                        • Usuario: <strong>{$usuarioActual['nombre']}</strong><br>
                         • Saldo Inicial: <strong>₲ " . number_format($saldo_inicial, 0, ',', '.') . "</strong><br>
                         • Fecha/Hora: <strong>" . date('d/m/Y H:i', strtotime($fecha_apertura)) . "</strong><br><br>
                         ✅ Ya puedes empezar a operar";
@@ -64,6 +84,11 @@ try {
     $titulo = "❌ Error al Abrir Caja";
     $mensaje = htmlspecialchars($e->getMessage());
     $tipo = "error";
+    
+    // Registrar error en log
+    if (isset($usuarioActual)) {
+        registrarActividad('ERROR', 'CAJA', "Error al abrir caja: " . $e->getMessage(), null, null);
+    }
 }
 ?>
 <!DOCTYPE html>

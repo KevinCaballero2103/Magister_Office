@@ -1,4 +1,5 @@
 <?php
+include_once "../auth.php";
 // Variables para JavaScript
 $mensaje = "";
 $tipo = "";

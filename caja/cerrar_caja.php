@@ -1,5 +1,9 @@
 <?php
+include_once "../auth.php";
 include_once "../db.php";
+
+// Registrar acceso
+registrarActividad('ACCESO', 'CAJA', 'Acceso a cierre de caja', null, null);
 
 // Verificar si hay caja abierta
 $sentenciaCaja = $conexion->prepare("SELECT * FROM cierres_caja WHERE estado = 'ABIERTA' ORDER BY fecha_apertura DESC LIMIT 1");
@@ -106,6 +110,14 @@ $dataJSON = json_encode([
             text-align: center;
             margin-top: 15px;
         }
+        .info-usuario {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -114,6 +126,7 @@ $dataJSON = json_encode([
     <script>
         const data = <?php echo $dataJSON; ?>;
         const formatMoney = (num) => '₲ ' + parseFloat(num).toLocaleString('es-PY', {minimumFractionDigits: 2});
+        const usuarioCierre = '<?php echo addslashes($_SESSION['usuario_nombre']); ?>';
 
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
@@ -128,6 +141,10 @@ $dataJSON = json_encode([
                 <div class="form-container">
                     <div class="cierre-icon">🔒💰</div>
                     <h1 class="form-title">Cierre de Caja</h1>
+                    
+                    <div class="info-usuario">
+                        👤 Cierre realizado por: <strong style="color: #f1c40f;">${usuarioCierre}</strong>
+                    </div>
                     
                     <div class="resumen-caja">
                         <div class="resumen-title">📊 Resumen de Caja</div>
@@ -185,13 +202,6 @@ $dataJSON = json_encode([
                                     <div style="font-size: 1rem; margin-bottom: 5px;">📊 DIFERENCIA</div>
                                     <div id="diferencia-valor" style="font-size: 1.8rem; font-weight: bold;"></div>
                                     <div id="diferencia-mensaje" style="margin-top: 10px; font-size: 0.9rem;"></div>
-                                </div>
-
-                                <div class="field">
-                                    <label class="label">Usuario que Cierra *</label>
-                                    <div class="control">
-                                        <input class="input" type="text" name="usuario_cierre" placeholder="Nombre del cajero" required>
-                                    </div>
                                 </div>
 
                                 <div class="field">
