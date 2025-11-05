@@ -42,7 +42,7 @@ $gravadas_10 = $total_a_pagar;
 $exentas = 0;
 
 $fecha_hora = date('d/m/Y H:i:s', strtotime($venta->fecha_venta));
-$cliente_nombre = trim($venta->nombre_cliente) ?: 'CLIENTE GENERICO';
+$cliente_nombre = trim($venta->nombre_cliente) ?: 'SIN ESPECIFICAR';
 $cliente_ruc = $venta->ci_ruc_cliente ?: 'S/N';
 $numero_comprobante = $venta->numero_venta ?: str_pad($id_venta, 7, '0', STR_PAD_LEFT);
 

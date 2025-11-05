@@ -198,8 +198,8 @@ if (isset($_GET['error'])) {
             color: rgba(241, 196, 15, 0.7);
             z-index: 1;
         }
-        .icon-user::before { content: '👤'; }
-        .icon-password::before { content: '🔒'; }
+        .icon-user::before { content: ''; }
+        .icon-password::before { content: ''; }
     </style>
 </head>
 <body>
@@ -221,7 +221,7 @@ if (isset($_GET['error'])) {
         <form method="POST" action="">
             <div class="field">
                 <label class="label">Usuario</label>
-                <div class="control icon-input icon-user">
+                <div class="control">
                     <input class="input" type="text" name="usuario" placeholder="Ingresa tu usuario" 
                            value="<?php echo isset($_POST['usuario']) ? htmlspecialchars($_POST['usuario']) : ''; ?>" 
                            required autofocus>
@@ -230,7 +230,7 @@ if (isset($_GET['error'])) {
             
             <div class="field">
                 <label class="label">Contraseña</label>
-                <div class="control icon-input icon-password">
+                <div class="control">
                     <input class="input" type="password" name="password" placeholder="Ingresa tu contraseña" required>
                 </div>
             </div>
