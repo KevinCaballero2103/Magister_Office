@@ -1,5 +1,6 @@
 <?php
 include_once "../db.php";
+include_once "../auth.php"; 
 
 if (!isset($_GET['id_venta']) || !isset($_GET['tipo'])) {
     die("Error: Parámetros inválidos");

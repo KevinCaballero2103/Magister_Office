@@ -11,15 +11,11 @@ $tipo = "";
 $titulo = "";
 $detalles_anulacion = array();
 
-// TODO: Cuando implementes login, descomentar esto:
-// if (!isset($_SESSION['usuario_id'])) {
-//     header("Location: ../login.php");
-//     exit();
-// }
 
-// Usuario temporal (reemplazar con sesión real)
-$usuario_anula = isset($_SESSION['nombre_usuario']) ? $_SESSION['nombre_usuario'] : 'ADMIN';
+include_once "../auth.php"; 
 
+$usuarioActual = getUsuarioActual();
+$usuario_anula = $usuarioActual['nombre'];
 try {
     // Validar método y parámetros
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

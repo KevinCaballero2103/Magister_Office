@@ -25,7 +25,25 @@ $sentenciaServicios->execute();
 $servicios = $sentenciaServicios->fetchAll(PDO::FETCH_OBJ);
 
 $FACTURA_INICIAL = 826;
-$FACTURA_NUMERO = $FACTURA_INICIAL + ($nextId - 1);
+$sentenciaUltimaFactura = $conexion->prepare("
+    SELECT numero_venta 
+    FROM ventas 
+    WHERE tipo_comprobante = 'FACTURA' 
+    AND numero_venta IS NOT NULL 
+    ORDER BY numero_venta DESC 
+    LIMIT 1
+");
+$sentenciaUltimaFactura->execute();
+$ultimaFactura = $sentenciaUltimaFactura->fetchColumn();
+
+if ($ultimaFactura) {
+    // Extraer el número de la factura (últimos 7 dígitos)
+    $ultimoNumero = intval(substr($ultimaFactura, -7));
+    $FACTURA_NUMERO = $ultimoNumero + 1;
+} else {
+    // Si no hay facturas previas, empezar desde 826
+    $siguienteNumero = 826;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">

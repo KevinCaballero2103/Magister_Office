@@ -1,5 +1,6 @@
 <?php
 include_once "../db.php";
+include_once "../auth.php"; 
 
 $fecha_desde = isset($_GET['fecha_desde']) ? $_GET['fecha_desde'] : "";
 $fecha_hasta = isset($_GET['fecha_hasta']) ? $_GET['fecha_hasta'] : "";

@@ -1,4 +1,5 @@
 <?php
+include_once "../auth.php"; 
 $mensaje = "";
 $tipo = "";
 $titulo = "";
@@ -69,9 +70,27 @@ try {
         
         if ($tipo_comprobante === 'FACTURA') {
             // FACTURA: 001-001-0000826 (continúa desde 826)
-            $FACTURA_BASE = 825; // La última factura real fue 825
-            $numero_factura = $FACTURA_BASE + $id_venta;
-            $numero_comprobante_asignado = '001-001-' . str_pad($numero_factura, 7, '0', STR_PAD_LEFT);
+            $sentenciaUltimaFactura = $conexion->prepare("
+                SELECT numero_venta 
+                FROM ventas 
+                WHERE tipo_comprobante = 'FACTURA' 
+                AND numero_venta IS NOT NULL 
+                ORDER BY numero_venta DESC 
+                LIMIT 1
+            ");
+            $sentenciaUltimaFactura->execute();
+            $ultimaFactura = $sentenciaUltimaFactura->fetchColumn();
+            
+            if ($ultimaFactura) {
+                // Extraer el número de la factura (últimos 7 dígitos)
+                $ultimoNumero = intval(substr($ultimaFactura, -7));
+                $siguienteNumero = $ultimoNumero + 1;
+            } else {
+                // Si no hay facturas previas, empezar desde 826
+                $siguienteNumero = 826;
+            }
+            
+            $numero_comprobante_asignado = '001-001-' . str_pad($siguienteNumero, 7, '0', STR_PAD_LEFT);
         } elseif ($tipo_comprobante === 'TICKET') {
             // TICKET: 0000001 (simple contador basado en ID)
             $numero_comprobante_asignado = str_pad($id_venta, 7, '0', STR_PAD_LEFT);
