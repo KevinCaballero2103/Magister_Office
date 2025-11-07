@@ -4,6 +4,9 @@
 	@author KeSe
 	@date 2025-09-17
 */
+
+date_default_timezone_set('America/Asuncion');
+
 $contraseña = "";
 $usuario = "root";
 $nombre_base_de_datos = "magister_office";

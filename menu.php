@@ -342,7 +342,6 @@ if (isset($_SESSION['usuario_nombre'])) {
                     </div>
                     <div class="submenu">
                         <a href="<?php echo $prefix; ?>auditoria/log_actividades.php" class="submenu-item">Log de Actividades</a>
-                        <a href="<?php echo $prefix; ?>auditoria/historial_stock.php" class="submenu-item">Historial de Stock</a>
                     </div>
                 </div>
                 <!-- Usuarios (SOLO ADMINISTRADORES) -->
@@ -361,6 +360,19 @@ if (isset($_SESSION['usuario_nombre'])) {
                         <a href="<?php echo $prefix; ?>usuarios/frm_guardar_usuario.php" class="submenu-item">Crear Usuario</a>
                         <a href="<?php echo $prefix; ?>usuarios/listado_usuarios.php" class="submenu-item">Gestionar Usuarios</a>
                     </div>
+                </div>
+                <?php endif; ?>
+                <!-- Backups (SOLO ADMINISTRADORES) -->
+                <?php if (isset($_SESSION['usuario_rol']) && $_SESSION['usuario_rol'] === 'ADMINISTRADOR'): ?>
+                <div class="nav-item">
+                    <a href="<?php echo $prefix; ?>backups/panel_backups.php" class="nav-link">
+                        <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"/>
+                            <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"/>
+                            <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"/>
+                        </svg>
+                        <span class="nav-text">Backups</span>
+                    </a>
                 </div>
                 <?php endif; ?>
             </div>

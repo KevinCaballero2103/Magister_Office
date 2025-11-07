@@ -38,6 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['usuario_rol'] = $user['rol'];
                         $_SESSION['ultimo_acceso'] = time();
                         
+                        // ===== Verificar backup automático =====
+                        try {
+                            require_once __DIR__ . '/backups/generar_backup.php';
+                            verificarBackupAutomatico();
+                        } catch (Exception $e) {
+                            error_log("Error verificando backup automático: " . $e->getMessage());
+                        }
+
                         // Actualizar último acceso y resetear intentos
                         $stmt = $conexion->prepare("UPDATE usuarios SET ultimo_acceso = NOW(), intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id = ?");
                         $stmt->execute([$user['id']]);

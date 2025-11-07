@@ -1,0 +1,7 @@
+# Denegar acceso web directo a backups
+Deny from all
+
+# Solo scripts PHP del servidor pueden acceder
+<Files ~ "\.php$">
+    Allow from all
+</Files>
