@@ -226,24 +226,67 @@ try {
             
             $infoCuotas = "<br>• <strong style='color: #e67e22;'>CRÉDITO:</strong> $cuotas cuotas de ₲ " . number_format($monto_cuota, 0, ',', '.') . " c/u<br>• Primera cuota vence: " . date('d/m/Y', strtotime($fecha_vencimiento_primera));
         }
-
-        // 5. MOVIMIENTO EN CAJA
-        // CRÍTICO: Solo registrar ingreso si es CONTADO o FIADO con pago inmediato
-        if ($condicion_venta === 'CONTADO') {
-            $sentenciaCaja = $conexion->prepare(
-                "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento) 
-                 VALUES ('INGRESO', 'VENTA', ?, ?, ?, ?)"
-            );
-
-            $nombreCliente = "Cliente Genérico";
-            if ($id_cliente) {
-                $sentenciaNombreCliente = $conexion->prepare("SELECT CONCAT(nombre_cliente, ' ', apellido_cliente) as nombre_completo FROM clientes WHERE id = ?");
-                $sentenciaNombreCliente->execute([$id_cliente]);
-                $nombreClienteDB = $sentenciaNombreCliente->fetchColumn();
-                if ($nombreClienteDB) {
-                    $nombreCliente = $nombreClienteDB;
-                }
+        $nombreCliente = "Cliente Genérico";
+        if ($id_cliente) {
+            $sentenciaNombreCliente = $conexion->prepare("SELECT CONCAT(nombre_cliente, ' ', apellido_cliente) as nombre_completo FROM clientes WHERE id = ?");
+            $sentenciaNombreCliente->execute([$id_cliente]);
+            $nombreClienteDB = $sentenciaNombreCliente->fetchColumn();
+            if ($nombreClienteDB) {
+                $nombreCliente = $nombreClienteDB;
             }
+        }
+        // 5. MOVIMIENTO EN CAJA O CUENTA CORRIENTE
+        $nombreCliente = "Cliente Genérico";
+        if ($id_cliente) {
+            $sentenciaNombreCliente = $conexion->prepare("SELECT CONCAT(nombre_cliente, ' ', apellido_cliente) as nombre_completo FROM clientes WHERE id = ?");
+            $sentenciaNombreCliente->execute([$id_cliente]);
+            $nombreClienteDB = $sentenciaNombreCliente->fetchColumn();
+            if ($nombreClienteDB) {
+                $nombreCliente = $nombreClienteDB;
+            }
+        }
+
+        if ($forma_pago === 'FIADO') {
+            // FIADO: Registrar en cuenta corriente (DEBITO), NO en caja
+            if (!$id_cliente) {
+                throw new Exception("Para ventas FIADAS debe seleccionar un cliente registrado");
+            }
+            
+            // Calcular saldo actual del cliente
+            $sentenciaSaldoCliente = $conexion->prepare("
+                SELECT COALESCE(SUM(CASE WHEN tipo_movimiento = 'DEBITO' THEN monto ELSE -monto END), 0) as saldo_actual
+                FROM cuentas_corrientes
+                WHERE id_cliente = ?
+            ");
+            $sentenciaSaldoCliente->execute([$id_cliente]);
+            $saldo_anterior = floatval($sentenciaSaldoCliente->fetchColumn());
+            $saldo_nuevo = $saldo_anterior + $total_venta;
+            
+            $sentenciaCuentaCorriente = $conexion->prepare("
+                INSERT INTO cuentas_corrientes (id_cliente, id_venta, tipo_movimiento, monto, saldo_actual, descripcion)
+                VALUES (?, ?, 'DEBITO', ?, ?, ?)
+            ");
+            
+            $descripcion = "Venta #$id_venta FIADA" . ($numero_comprobante_asignado ? " ($tipo_comprobante: $numero_comprobante_asignado)" : "");
+            
+            $resultadoCuentaCorriente = $sentenciaCuentaCorriente->execute([
+                $id_cliente,
+                $id_venta,
+                $total_venta,
+                $saldo_nuevo,
+                $descripcion
+            ]);
+            
+            if (!$resultadoCuentaCorriente) {
+                throw new Exception("Error al registrar en cuenta corriente");
+            }
+            
+        } else if ($forma_pago === 'CONTADO' && $condicion_venta === 'CONTADO') {
+            // SOLO CONTADO EN EFECTIVO: Registrar en CAJA (dinero físico)
+            $sentenciaCaja = $conexion->prepare(
+                "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento, usuario_registro) 
+                VALUES ('INGRESO', 'VENTA', ?, ?, ?, ?, ?)"
+            );
 
             $conceptoCaja = "VENTA #$id_venta - $nombreCliente" . ($numero_comprobante_asignado ? " ($tipo_comprobante: $numero_comprobante_asignado)" : "");
 
@@ -251,14 +294,17 @@ try {
                 $id_venta,
                 $conceptoCaja,
                 $total_venta,
-                $fecha_venta
+                $fecha_venta,
+                getUsuarioActual()['nombre']
             ]);
 
             if (!$resultadoCaja) {
                 throw new Exception("Error al registrar el movimiento de caja");
             }
         }
-        // Si es CRÉDITO: NO registrar en caja (se registrará cuando paguen cada cuota)
+        // TARJETA/TRANSFERENCIA: NO registra en caja (es ingreso digital, no afecta dinero físico)
+        // CRÉDITO: NO registrar en caja (se registrará cuando paguen cada cuota)
+
 
         // Confirmar transacción
         $conexion->commit();
