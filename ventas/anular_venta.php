@@ -4,7 +4,6 @@
 // Con auditoría completa y control de permisos
 // ============================================
 
-session_start();
 
 $mensaje = "";
 $tipo = "";

@@ -6,8 +6,8 @@
  */
 
 // Configuración
-define('BACKUP_DIR', __DIR__); // Esta misma carpeta
-define('MAX_BACKUPS', 7); // Mantener últimos 7 backups
+define('BACKUP_DIR', __DIR__);
+define('MAX_BACKUPS', 10);
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
 define('DB_PASS', '');
@@ -17,17 +17,63 @@ define('DB_NAME', 'magister_office');
 date_default_timezone_set('America/Asuncion');
 
 /**
+ * Detecta la ubicación de mysqldump en Laragon
+ */
+function detectarMysqldump() {
+    $posiblesRutas = [
+        'C:/laragon/bin/mysql/mysql-8.0.30/bin/mysqldump.exe',
+        'C:/laragon/bin/mysql/mysql-5.7.33/bin/mysqldump.exe',
+        'C:/laragon/bin/mysql/mariadb-10.4.27/bin/mysqldump.exe',
+        'C:/laragon/bin/mysql/mariadb-10.11.2/bin/mysqldump.exe',
+    ];
+    
+    $mysqlDir = 'C:/laragon/bin/mysql/';
+    if (is_dir($mysqlDir)) {
+        $carpetas = glob($mysqlDir . '*', GLOB_ONLYDIR);
+        foreach ($carpetas as $carpeta) {
+            $mysqldump = $carpeta . '/bin/mysqldump.exe';
+            if (file_exists($mysqldump)) {
+                return $mysqldump;
+            }
+        }
+    }
+    
+    foreach ($posiblesRutas as $ruta) {
+        if (file_exists($ruta)) {
+            return $ruta;
+        }
+    }
+    
+    exec('where mysqldump 2>nul', $output, $returnCode);
+    if ($returnCode === 0 && !empty($output[0])) {
+        return trim($output[0]);
+    }
+    
+    return false;
+}
+
+/**
  * Genera el backup y retorna información
  */
 function generarBackup($manual = false) {
-    $fecha = date('Y-m-d_H-i-s');
+    $dt = new DateTime('now', new DateTimeZone('America/Asuncion'));
+    $fecha = $dt->format('Y-m-d_H-i-s');
     $tipo = $manual ? 'manual' : 'automatico';
     $nombreArchivo = "backup_{$tipo}_{$fecha}.sql";
     $rutaCompleta = BACKUP_DIR . '/' . $nombreArchivo;
     
-    // Comando mysqldump (Laragon lo tiene disponible)
+    $mysqldumpPath = detectarMysqldump();
+    
+    if (!$mysqldumpPath) {
+        return [
+            'exito' => false,
+            'error' => 'No se encontró mysqldump. Verifica la instalación de MySQL/MariaDB en Laragon.'
+        ];
+    }
+    
     $comando = sprintf(
-        'mysqldump --user=%s --password=%s --host=%s %s > %s 2>&1',
+        '"%s" --user=%s --password=%s --host=%s --skip-comments --add-drop-table %s > %s 2>&1',
+        $mysqldumpPath,
         DB_USER,
         DB_PASS,
         DB_HOST,
@@ -35,13 +81,10 @@ function generarBackup($manual = false) {
         escapeshellarg($rutaCompleta)
     );
     
-    // Ejecutar
     exec($comando, $output, $resultado);
     
-    if ($resultado === 0 && file_exists($rutaCompleta)) {
+    if ($resultado === 0 && file_exists($rutaCompleta) && filesize($rutaCompleta) > 100) {
         $tamano = filesize($rutaCompleta);
-        
-        // Limpiar backups antiguos
         limpiarBackupsAntiguos();
         
         return [
@@ -50,13 +93,14 @@ function generarBackup($manual = false) {
             'ruta' => $rutaCompleta,
             'tamano' => $tamano,
             'tamano_legible' => formatearTamano($tamano),
-            'fecha' => date('d/m/Y H:i:s')
+            'fecha' => $dt->format('d/m/Y H:i:s')
         ];
     } else {
         return [
             'exito' => false,
             'error' => 'Error ejecutando mysqldump: ' . implode("\n", $output),
-            'comando' => $comando // Para debug
+            'comando' => $comando,
+            'resultado_code' => $resultado
         ];
     }
 }
@@ -68,15 +112,13 @@ function limpiarBackupsAntiguos() {
     $archivos = glob(BACKUP_DIR . '/backup_*.sql');
     
     if (count($archivos) <= MAX_BACKUPS) {
-        return; // No hay que eliminar nada
+        return;
     }
     
-    // Ordenar por fecha (más antiguos primero)
     usort($archivos, function($a, $b) {
         return filemtime($a) - filemtime($b);
     });
     
-    // Eliminar los más antiguos
     $aEliminar = count($archivos) - MAX_BACKUPS;
     for ($i = 0; $i < $aEliminar; $i++) {
         if (file_exists($archivos[$i])) {
@@ -92,24 +134,38 @@ function limpiarBackupsAntiguos() {
 function verificarBackupAutomatico() {
     $archivoControl = BACKUP_DIR . '/ultimo_backup.txt';
     
-    // Leer última fecha de backup
+    $dt = new DateTime('now', new DateTimeZone('America/Asuncion'));
+    $ahora = $dt->getTimestamp();
+    
     if (file_exists($archivoControl)) {
-        $ultimoBackup = file_get_contents($archivoControl);
-        $horasTranscurridas = (time() - intval($ultimoBackup)) / 3600;
+        $contenido = trim(file_get_contents($archivoControl));
         
-        if ($horasTranscurridas < 24) {
-            return false; // No es necesario aún
+        if (!empty($contenido) && is_numeric($contenido)) {
+            $ultimoBackup = intval($contenido);
+            
+            $timestamp2020 = 1577836800;
+            $timestamp2030 = 1893456000;
+            
+            if ($ultimoBackup < $timestamp2020 || $ultimoBackup > $timestamp2030) {
+                error_log("BACKUP ERROR - Timestamp fuera de rango válido");
+                @unlink($archivoControl);
+            } else {
+                $segundosTranscurridos = $ahora - $ultimoBackup;
+                $horasTranscurridas = $segundosTranscurridos / 3600;
+                
+                if ($horasTranscurridas < 24) {
+                    return false;
+                }
+            }
+        } else {
+            @unlink($archivoControl);
         }
     }
     
-    // Generar backup automático
     $resultado = generarBackup(false);
     
     if ($resultado['exito']) {
-        // Actualizar archivo de control
-        file_put_contents($archivoControl, time());
-        
-        // Registrar en log (opcional)
+        @file_put_contents($archivoControl, $ahora);
         error_log("Backup automático generado: " . $resultado['archivo']);
     }
     
@@ -125,18 +181,21 @@ function listarBackups() {
     
     foreach ($archivos as $archivo) {
         $nombre = basename($archivo);
+        $timestamp = filemtime($archivo);
+        $dt = new DateTime('@' . $timestamp);
+        $dt->setTimezone(new DateTimeZone('America/Asuncion'));
+        
         $backups[] = [
             'nombre' => $nombre,
             'ruta' => $archivo,
             'tamano' => filesize($archivo),
             'tamano_legible' => formatearTamano(filesize($archivo)),
-            'fecha' => date('d/m/Y H:i:s', filemtime($archivo)),
-            'timestamp' => filemtime($archivo),
+            'fecha' => $dt->format('d/m/Y H:i:s'),
+            'timestamp' => $timestamp,
             'tipo' => strpos($nombre, 'manual') !== false ? 'Manual' : 'Automático'
         ];
     }
     
-    // Ordenar por fecha (más recientes primero)
     usort($backups, function($a, $b) {
         return $b['timestamp'] - $a['timestamp'];
     });
@@ -178,7 +237,6 @@ function descargarBackup($nombreArchivo) {
     exit;
 }
 
-// Si se ejecuta directamente (backup manual desde panel)
 if (php_sapi_name() === 'cli' || (isset($_GET['accion']) && $_GET['accion'] === 'generar_manual')) {
     $resultado = generarBackup(true);
     

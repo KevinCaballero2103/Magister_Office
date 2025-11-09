@@ -1,5 +1,5 @@
 <?php
-// Obtener proveedores para el selector
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
 
 $sentenciaProveedores = $conexion->prepare("SELECT id, nombre_proveedor FROM proveedores WHERE estado_proveedor = 1 ORDER BY nombre_proveedor ASC");

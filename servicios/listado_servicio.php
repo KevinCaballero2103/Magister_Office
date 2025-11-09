@@ -1,6 +1,6 @@
 <?php
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
-include_once "../auth.php"; 
 
 
 $estado = isset($_GET['estado']) ? $_GET['estado'] : "99";

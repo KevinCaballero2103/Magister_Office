@@ -1,4 +1,6 @@
 <?php
+include_once __DIR__ . "/../auth.php";
+$cajaAbierta = requiereCajaAbierta();
 if (!isset($_GET["id"])) {
     $error = "Necesito el parámetro id para identificar la compra.";
 } else {

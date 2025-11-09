@@ -1,6 +1,8 @@
 <?php
 // Procesamiento de datos al inicio
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
+$cajaAbierta = requiereCajaAbierta();
 
 $fecha_desde = isset($_GET['fecha_desde']) ? $_GET['fecha_desde'] : "";
 $fecha_hasta = isset($_GET['fecha_hasta']) ? $_GET['fecha_hasta'] : "";

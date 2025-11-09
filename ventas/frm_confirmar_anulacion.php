@@ -10,9 +10,8 @@ if (!isset($_GET["id"])) {
 }
 
 $id_venta = intval($_GET["id"]);
-
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
-include_once "../auth.php"; 
 
 // Obtener configuración
 $sentenciaConfig = $conexion->prepare("SELECT clave, valor FROM configuracion_sistema WHERE clave IN ('dias_limite_anulacion', 'permitir_anular_factura', 'requiere_motivo_anulacion')");

@@ -1,8 +1,14 @@
 <?php
-session_start();
+include_once __DIR__ . "/../auth.php";
+if (!tienePermiso(['ADMINISTRADOR'])) {
+    header("Location: ../index.php?error=sin_permisos");
+    exit();
+}
+$cajaAbierta = requiereCajaAbierta();
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
+
 
 include_once "../db.php";
 

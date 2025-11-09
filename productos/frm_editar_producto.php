@@ -1,5 +1,5 @@
 <?php
-// Validación y obtención de datos al inicio
+include_once __DIR__ . "/../auth.php";
 if (!isset($_GET["id"])) {
     $error = "Necesito del parámetro id para identificar al producto.";
 } else {

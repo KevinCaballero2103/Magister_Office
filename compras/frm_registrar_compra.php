@@ -1,6 +1,8 @@
 <?php
 // Obtener proveedores activos
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
+$cajaAbierta = requiereCajaAbierta();
 
 $sentenciaProveedores = $conexion->prepare("SELECT id, nombre_proveedor FROM proveedores WHERE estado_proveedor = 1 ORDER BY nombre_proveedor ASC");
 $sentenciaProveedores->execute();

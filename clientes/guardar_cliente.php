@@ -1,6 +1,6 @@
 <?php
 // Variables para JavaScript
-include_once "../auth.php";
+include_once __DIR__ . "/../auth.php";
 
 $mensaje = "";
 $tipo = "";

@@ -18,7 +18,7 @@ if (isset($_SESSION['ultimo_acceso'])) {
     if ($inactivo > 14400) { // 4 horas
         session_unset();
         session_destroy();
-        header("Location: /login.php?error=sesion_expirada");
+        header("Location: /Magister_Office/login.php?error=sesion_expirada");
         exit();
     }
 }
@@ -71,5 +71,49 @@ function registrarActividad($accion, $modulo, $descripcion, $datos_anteriores = 
     } catch (Exception $e) {
         error_log("Error registrando actividad: " . $e->getMessage());
     }
+}
+/**
+ * Verifica si hay una caja abierta
+ * @return object|false Retorna objeto con datos de caja si está abierta, false si está cerrada
+ */
+function verificarCajaAbierta() {
+    global $conexion;
+    
+    if (!isset($conexion)) {
+        include_once __DIR__ . "/db.php";
+    }
+    
+    try {
+        $sentencia = $conexion->prepare("
+            SELECT * FROM cierres_caja 
+            WHERE estado = 'ABIERTA' 
+            ORDER BY fecha_apertura DESC 
+            LIMIT 1
+        ");
+        $sentencia->execute();
+        $caja = $sentencia->fetch(PDO::FETCH_OBJ);
+        
+        return $caja ? $caja : false;
+    } catch (Exception $e) {
+        error_log("Error verificando caja: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Requiere que la caja esté abierta
+ * Si no está abierta, redirige con error
+ */
+function requiereCajaAbierta() {
+    $caja = verificarCajaAbierta();
+    
+    if (!$caja) {
+        // Determinar la ruta correcta
+        $rutaError = str_repeat('../', substr_count(dirname($_SERVER['SCRIPT_NAME']), '/') - 1) . 'caja/caja_cerrada.php';
+        header("Location: $rutaError");
+        exit();
+    }
+    
+    return $caja;
 }
 ?>

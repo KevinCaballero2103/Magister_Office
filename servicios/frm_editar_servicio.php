@@ -1,4 +1,5 @@
 <?php
+include_once __DIR__ . "/../auth.php";
 if (!isset($_GET["id"])) {
     $error = "Necesito el parámetro id para identificar el servicio.";
 } else {

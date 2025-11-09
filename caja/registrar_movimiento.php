@@ -1,5 +1,6 @@
 <?php
 include_once "../auth.php";
+$cajaAbierta = requiereCajaAbierta();
 
 // Registrar acceso al módulo
 registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', null, null);

@@ -1,5 +1,5 @@
 <?php
-// Obtener productos para el selector
+include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
 
 $sentenciaProductos = $conexion->prepare("SELECT id, nombre_producto FROM productos WHERE estado_producto = 1 ORDER BY nombre_producto ASC");

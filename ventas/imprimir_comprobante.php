@@ -1,6 +1,10 @@
 <?php
+include_once __DIR__ . "/../auth.php";
+if (!tienePermiso(['ADMINISTRADOR'])) {
+    header("Location: ../index.php?error=sin_permisos");
+    exit();
+}
 include_once "../db.php";
-include_once "../auth.php"; 
 
 if (!isset($_GET['id_venta']) || !isset($_GET['tipo'])) {
     die("Error: Parámetros inválidos");

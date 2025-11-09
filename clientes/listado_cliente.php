@@ -1,6 +1,6 @@
 <?php
 // Procesamiento de datos al inicio
-include_once "../db.php";
+include_once __DIR__ . "/../auth.php";include_once "../db.php";
 
 $estado = isset($_GET['estado']) ? $_GET['estado'] : "99";
 $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : "todos";

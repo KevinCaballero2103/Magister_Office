@@ -1,7 +1,9 @@
 <?php
+include_once __DIR__ . "/../auth.php";
 $mensaje = "";
 $tipo = "";
 $titulo = "";
+$cajaAbierta = requiereCajaAbierta();
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

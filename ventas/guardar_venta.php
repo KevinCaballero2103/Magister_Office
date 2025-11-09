@@ -1,5 +1,10 @@
 <?php
-include_once "../auth.php"; 
+include_once __DIR__ . "/../auth.php";
+if (!tienePermiso(['ADMINISTRADOR', 'CAJERO'])) {
+    header("Location: ../index.php?error=sin_permisos");
+    exit();
+}
+$cajaAbierta = requiereCajaAbierta();
 $mensaje = "";
 $tipo = "";
 $titulo = "";
@@ -28,6 +33,10 @@ try {
         $condicion_venta = isset($_POST['condicion_venta']) ? $_POST['condicion_venta'] : 'CONTADO';
         $forma_pago = isset($_POST['forma_pago']) ? $_POST['forma_pago'] : 'CONTADO';
         $items = isset($_POST['items']) ? $_POST['items'] : array();
+        
+        // NUEVO: Datos de crédito
+        $cuotas = isset($_POST['cuotas']) ? intval($_POST['cuotas']) : 1;
+        $fecha_vencimiento_primera = isset($_POST['fecha_vencimiento_primera']) ? $_POST['fecha_vencimiento_primera'] : null;
 
         // Validaciones
         if (empty($items) || count($items) == 0) {
@@ -41,8 +50,21 @@ try {
         if ($total_venta <= 0) {
             throw new Exception("El total de la venta debe ser mayor a 0");
         }
+        
+        // Validar crédito
+        if ($condicion_venta === 'CREDITO') {
+            if (!$id_cliente) {
+                throw new Exception("Para ventas a CRÉDITO debe seleccionar un cliente");
+            }
+            if ($cuotas < 1) {
+                throw new Exception("El número de cuotas debe ser mayor a 0");
+            }
+            if (empty($fecha_vencimiento_primera)) {
+                throw new Exception("Debe ingresar la fecha de vencimiento de la primera cuota");
+            }
+        }
 
-        // 1. Insertar la venta (SIN número todavía)
+        // 1. Insertar la venta
         $sentenciaVenta = $conexion->prepare(
             "INSERT INTO ventas (id_cliente, numero_venta, fecha_venta, subtotal, descuento, total_venta, observaciones, tipo_comprobante, condicion_venta, forma_pago, estado_venta) 
              VALUES (?, NULL, ?, ?, 0.00, ?, ?, ?, ?, ?, 1)"
@@ -62,14 +84,12 @@ try {
             throw new Exception("Error al registrar la venta");
         }
 
-        // Obtener ID de la venta insertada
         $id_venta = $conexion->lastInsertId();
 
-        // 2. GENERAR NUMERACIÓN AUTOMÁTICA según tipo de comprobante
+        // 2. Generar numeración automática
         $numero_comprobante_asignado = null;
         
         if ($tipo_comprobante === 'FACTURA') {
-            // FACTURA: 001-001-0000826 (continúa desde 826)
             $sentenciaUltimaFactura = $conexion->prepare("
                 SELECT numero_venta 
                 FROM ventas 
@@ -82,27 +102,23 @@ try {
             $ultimaFactura = $sentenciaUltimaFactura->fetchColumn();
             
             if ($ultimaFactura) {
-                // Extraer el número de la factura (últimos 7 dígitos)
                 $ultimoNumero = intval(substr($ultimaFactura, -7));
                 $siguienteNumero = $ultimoNumero + 1;
             } else {
-                // Si no hay facturas previas, empezar desde 826
                 $siguienteNumero = 826;
             }
             
             $numero_comprobante_asignado = '001-001-' . str_pad($siguienteNumero, 7, '0', STR_PAD_LEFT);
         } elseif ($tipo_comprobante === 'TICKET') {
-            // TICKET: 0000001 (simple contador basado en ID)
             $numero_comprobante_asignado = str_pad($id_venta, 7, '0', STR_PAD_LEFT);
         }
 
-        // Actualizar venta con el número generado
         if ($numero_comprobante_asignado) {
             $sentenciaActualizarNumero = $conexion->prepare("UPDATE ventas SET numero_venta = ? WHERE id = ?");
             $sentenciaActualizarNumero->execute([$numero_comprobante_asignado, $id_venta]);
         }
 
-        // 3. Insertar detalle de venta y actualizar stock (solo productos)
+        // 3. Insertar detalle y actualizar stock
         $sentenciaDetalle = $conexion->prepare(
             "INSERT INTO detalle_ventas (id_venta, tipo_item, id_item, descripcion, cantidad, precio_unitario, subtotal) 
              VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -136,7 +152,6 @@ try {
             $precio = floatval($item['precio']);
             $subtotal_item = $cantidad * $precio;
 
-            // Validar stock si es producto
             if ($tipo_item === 'PRODUCTO') {
                 $sentenciaStockActual->execute([$id_item]);
                 $stockAnterior = $sentenciaStockActual->fetchColumn();
@@ -146,17 +161,14 @@ try {
                     throw new Exception("Stock insuficiente para el producto: $descripcion (Disponible: $stockAnterior)");
                 }
 
-                // Actualizar stock del producto (RESTAR)
                 $resultadoStock = $sentenciaStock->execute([$cantidad, $id_item]);
 
                 if (!$resultadoStock) {
                     throw new Exception("Error al actualizar el stock del producto ID: $id_item");
                 }
 
-                // Calcular nuevo stock
                 $stockNuevo = $stockAnterior - $cantidad;
 
-                // Registrar en historial de stock
                 $sentenciaHistorial->execute([
                     $id_item,
                     $cantidad,
@@ -171,7 +183,6 @@ try {
                 $cantidadServicios++;
             }
 
-            // Insertar detalle de venta
             $resultadoDetalle = $sentenciaDetalle->execute([
                 $id_venta,
                 $tipo_item,
@@ -187,35 +198,67 @@ try {
             }
         }
 
-        // 4. Registrar movimiento en caja (INGRESO)
-        $sentenciaCaja = $conexion->prepare(
-            "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento) 
-             VALUES ('INGRESO', 'VENTA', ?, ?, ?, ?)"
-        );
+        // 4. NUEVO: Generar cuotas si es a CRÉDITO
+        $infoCuotas = '';
+        if ($condicion_venta === 'CREDITO') {
+            $monto_cuota = round($total_venta / $cuotas, 2);
+            $fecha_venc = new DateTime($fecha_vencimiento_primera);
+            
+            $sentenciaCuota = $conexion->prepare(
+                "INSERT INTO cuotas_venta (id_venta, numero, monto, fecha_vencimiento, estado) 
+                 VALUES (?, ?, ?, ?, 'PENDIENTE')"
+            );
+            
+            for ($i = 1; $i <= $cuotas; $i++) {
+                // Ajustar última cuota para compensar redondeos
+                $monto_actual = ($i == $cuotas) ? ($total_venta - ($monto_cuota * ($cuotas - 1))) : $monto_cuota;
+                
+                $sentenciaCuota->execute([
+                    $id_venta,
+                    $i,
+                    $monto_actual,
+                    $fecha_venc->format('Y-m-d')
+                ]);
+                
+                // Siguiente cuota: +30 días
+                $fecha_venc->modify('+30 days');
+            }
+            
+            $infoCuotas = "<br>• <strong style='color: #e67e22;'>CRÉDITO:</strong> $cuotas cuotas de ₲ " . number_format($monto_cuota, 0, ',', '.') . " c/u<br>• Primera cuota vence: " . date('d/m/Y', strtotime($fecha_vencimiento_primera));
+        }
 
-        // Obtener nombre del cliente para el concepto (si existe)
-        $nombreCliente = "Cliente Genérico";
-        if ($id_cliente) {
-            $sentenciaNombreCliente = $conexion->prepare("SELECT CONCAT(nombre_cliente, ' ', apellido_cliente) as nombre_completo FROM clientes WHERE id = ?");
-            $sentenciaNombreCliente->execute([$id_cliente]);
-            $nombreClienteDB = $sentenciaNombreCliente->fetchColumn();
-            if ($nombreClienteDB) {
-                $nombreCliente = $nombreClienteDB;
+        // 5. MOVIMIENTO EN CAJA
+        // CRÍTICO: Solo registrar ingreso si es CONTADO o FIADO con pago inmediato
+        if ($condicion_venta === 'CONTADO') {
+            $sentenciaCaja = $conexion->prepare(
+                "INSERT INTO caja (tipo_movimiento, categoria, id_referencia, concepto, monto, fecha_movimiento) 
+                 VALUES ('INGRESO', 'VENTA', ?, ?, ?, ?)"
+            );
+
+            $nombreCliente = "Cliente Genérico";
+            if ($id_cliente) {
+                $sentenciaNombreCliente = $conexion->prepare("SELECT CONCAT(nombre_cliente, ' ', apellido_cliente) as nombre_completo FROM clientes WHERE id = ?");
+                $sentenciaNombreCliente->execute([$id_cliente]);
+                $nombreClienteDB = $sentenciaNombreCliente->fetchColumn();
+                if ($nombreClienteDB) {
+                    $nombreCliente = $nombreClienteDB;
+                }
+            }
+
+            $conceptoCaja = "VENTA #$id_venta - $nombreCliente" . ($numero_comprobante_asignado ? " ($tipo_comprobante: $numero_comprobante_asignado)" : "");
+
+            $resultadoCaja = $sentenciaCaja->execute([
+                $id_venta,
+                $conceptoCaja,
+                $total_venta,
+                $fecha_venta
+            ]);
+
+            if (!$resultadoCaja) {
+                throw new Exception("Error al registrar el movimiento de caja");
             }
         }
-
-        $conceptoCaja = "VENTA #$id_venta - $nombreCliente" . ($numero_comprobante_asignado ? " ($tipo_comprobante: $numero_comprobante_asignado)" : "");
-
-        $resultadoCaja = $sentenciaCaja->execute([
-            $id_venta,
-            $conceptoCaja,
-            $total_venta,
-            $fecha_venta
-        ]);
-
-        if (!$resultadoCaja) {
-            throw new Exception("Error al registrar el movimiento de caja");
-        }
+        // Si es CRÉDITO: NO registrar en caja (se registrará cuando paguen cada cuota)
 
         // Confirmar transacción
         $conexion->commit();
@@ -234,20 +277,19 @@ try {
                     • Subtotal: <strong>₲ " . number_format($subtotal, 0, ',', '.') . "</strong><br>
                     • IVA (10% - Informativo): <strong>₲ " . number_format($iva_informativo, 0, ',', '.') . "</strong><br>
                     • <strong style='font-size: 1.1rem;'>Total: ₲ " . number_format($total_venta, 0, ',', '.') . "</strong><br>
-                    • Condición: <strong>$condicion_venta</strong><br>
+                    • Condición: <strong style='color: " . ($condicion_venta === 'CREDITO' ? '#e67e22' : '#27ae60') . ";'>$condicion_venta</strong>$infoCuotas<br>
                     • Productos: <strong>$cantidadProductos</strong><br>
                     • Servicios: <strong>$cantidadServicios</strong><br><br>
                     <strong>Acciones realizadas:</strong><br>
-                    • Stock actualizado automáticamente ✓<br>
-                    • Movimiento de caja registrado ✓<br>
-                    • Historial de stock actualizado ✓";
+                    • Stock actualizado automáticamente ✓<br>" .
+                    ($condicion_venta === 'CONTADO' ? "• Movimiento de caja registrado ✓<br>" : "• Cuotas generadas (pendientes de pago) ✓<br>") .
+                    "• Historial de stock actualizado ✓";
         $tipo = "success";
 
     } else {
         throw new Exception("Método de solicitud no válido");
     }
 } catch (Exception $e) {
-    // Revertir transacción en caso de error
     if (isset($conexion) && $conexion && $conexion->inTransaction()) {
         $conexion->rollBack();
     }
@@ -269,117 +311,24 @@ try {
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/mensajes.css" rel="stylesheet">
     <style>
-        body {
-            background: #2c3e50 !important;
-        }
-        
-        .main-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            background: #2c3e50 !important;
-        }
-        
-        .message-container {
-            max-width: 820px;
-            width: 100%;
-            background: rgba(44, 62, 80, 0.95);
-            padding: 28px;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-        }
-        
-        .message-title {
-            margin-top: 10px;
-            margin-bottom: 12px;
-            font-size: 1.6rem;
-            color: #f1c40f;
-        }
-        
-        .message-content {
-            margin-bottom: 18px;
-            text-align: left;
-            line-height: 1.6;
-        }
-        
-        .status-icon {
-            font-size: 2.4rem;
-            display: inline-block;
-            margin-bottom: 6px;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .action-button {
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #2c3e50;
-            background: linear-gradient(45deg, #f39c12, #f1c40f);
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .action-button:hover {
-            background: linear-gradient(45deg, #e67e22, #f39c12);
-            transform: translateY(-2px);
-        }
-        
-        .secondary-button {
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            background: rgba(236, 240, 241, 0.1);
-            color: white;
-            border: 2px solid rgba(241, 196, 15, 0.2);
-            font-weight: bold;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .secondary-button:hover {
-            background: rgba(241, 196, 15, 0.15);
-            border-color: #f1c40f;
-            color: white;
-        }
-        
-        .print-button {
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            color: white;
-            background: linear-gradient(45deg, #3498db, #2980b9);
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-        
-        .print-button:hover {
-            background: linear-gradient(45deg, #2980b9, #3498db);
-            transform: translateY(-2px);
-        }
+        body { background: #2c3e50 !important; }
+        .main-content { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: #2c3e50 !important; }
+        .message-container { max-width: 820px; width: 100%; background: rgba(44, 62, 80, 0.95); padding: 28px; border-radius: 10px; color: white; text-align: center; }
+        .message-title { margin-top: 10px; margin-bottom: 12px; font-size: 1.6rem; color: #f1c40f; }
+        .message-content { margin-bottom: 18px; text-align: left; line-height: 1.6; }
+        .status-icon { font-size: 2.4rem; display: inline-block; margin-bottom: 6px; }
+        .button-group { display: flex; gap: 12px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+        .action-button, .secondary-button, .print-button { padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 0.95rem; transition: all 0.3s ease; display: inline-block; border: none; cursor: pointer; }
+        .action-button { color: #2c3e50; background: linear-gradient(45deg, #f39c12, #f1c40f); }
+        .action-button:hover { background: linear-gradient(45deg, #e67e22, #f39c12); transform: translateY(-2px); }
+        .secondary-button { background: rgba(236, 240, 241, 0.1); color: white; border: 2px solid rgba(241, 196, 15, 0.2); }
+        .secondary-button:hover { background: rgba(241, 196, 15, 0.15); border-color: #f1c40f; color: white; }
+        .print-button { color: white; background: linear-gradient(45deg, #3498db, #2980b9); }
+        .print-button:hover { background: linear-gradient(45deg, #2980b9, #3498db); transform: translateY(-2px); }
     </style>
 </head>
 <body>
     <?php include '../menu.php'; ?>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var mainContent = document.querySelector('.main-content');
@@ -401,7 +350,6 @@ try {
             var botonesHTML = "";
             
             if (tipo === 'success' && idVenta) {
-                // Botón de imprimir (solo si hay tipo de comprobante seleccionado)
                 if (tipoComprobante) {
                     var labelImpresion = tipoComprobante === 'FACTURA' ? '🖨️ Imprimir Factura' : '🖨️ Imprimir Ticket';
                     botonesHTML += "<button class='print-button' onclick=\"imprimirComprobante(" + idVenta + ", '" + tipoComprobante + "')\">" + labelImpresion + "</button>";

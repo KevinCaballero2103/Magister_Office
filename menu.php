@@ -305,6 +305,7 @@ if (isset($_SESSION['usuario_nombre'])) {
                     <div class="submenu">
                         <a href="<?php echo $prefix; ?>ventas/frm_registrar_venta.php" class="submenu-item">Registrar Venta</a>
                         <a href="<?php echo $prefix; ?>ventas/listado_ventas.php" class="submenu-item">Historial</a>
+                        <a href="<?php echo $prefix; ?>ventas/gestionar_cuotas.php" class="submenu-item">Gestionar Cuotas</a>
                     </div>
                 </div>
 
