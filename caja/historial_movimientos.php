@@ -12,11 +12,11 @@ $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : "";
 $condiciones = array();
 
 if ($tipo !== "todos") {
-    $condiciones[] = "tipo_movimiento = '" . $conexion->quote($tipo) . "'";
+    $condiciones[] = "tipo_movimiento = " . $conexion->quote($tipo);
 }
 
 if ($categoria !== "todos") {
-    $condiciones[] = "categoria = '" . $conexion->quote($categoria) . "'";
+    $condiciones[] = "categoria = " . $conexion->quote($categoria);
 }
 
 if (!empty($fecha_desde)) {
@@ -28,7 +28,8 @@ if (!empty($fecha_hasta)) {
 }
 
 if (!empty($buscar)) {
-    $condiciones[] = "(concepto LIKE '%" . $conexion->quote($buscar) . "%' OR observaciones LIKE '%" . $conexion->quote($buscar) . "%')";
+    $buscar_clean = addslashes($buscar);
+$condiciones[] = "(concepto LIKE '%$buscar_clean%' OR observaciones LIKE '%$buscar_clean%')";
 }
 
 $where_clause = "";

@@ -15,15 +15,18 @@ if (!$cajaAbierta) {
     exit();
 }
 
+// ✅ SOLUCIÓN: Convertir a solo fecha para comparar correctamente
+$fecha_apertura_solo_fecha = date('Y-m-d', strtotime($cajaAbierta->fecha_apertura));
+
 // Calcular movimientos desde la apertura
 $sentenciaMovs = $conexion->prepare("
     SELECT 
         SUM(CASE WHEN tipo_movimiento = 'INGRESO' THEN monto ELSE 0 END) as ingresos,
         SUM(CASE WHEN tipo_movimiento = 'EGRESO' THEN monto ELSE 0 END) as egresos
     FROM caja 
-    WHERE fecha_movimiento >= ?
+    WHERE DATE(fecha_movimiento) >= ?
 ");
-$sentenciaMovs->execute([$cajaAbierta->fecha_apertura]);
+$sentenciaMovs->execute([$fecha_apertura_solo_fecha]);
 $movs = $sentenciaMovs->fetch(PDO::FETCH_OBJ);
 
 $ingresos = floatval($movs->ingresos ?? 0);
@@ -263,13 +266,13 @@ $dataJSON = json_encode([
             const saldoFisico = parseFloat(document.getElementById('saldo_fisico').value) || 0;
             const diferencia = saldoFisico - data.saldo_sistema;
 
-            let mensaje = '¿Confirmar cierre de caja?\\n\\n';
-            mensaje += 'Saldo Sistema: ' + formatMoney(data.saldo_sistema) + '\\n';
-            mensaje += 'Saldo Físico: ' + formatMoney(saldoFisico) + '\\n';
+            let mensaje = '¿Confirmar cierre de caja?\n\n';
+            mensaje += 'Saldo Sistema: ' + formatMoney(data.saldo_sistema) + '\n';
+            mensaje += 'Saldo Físico: ' + formatMoney(saldoFisico) + '\n';
             mensaje += 'Diferencia: ' + formatMoney(Math.abs(diferencia));
 
             if (diferencia !== 0) {
-                mensaje += '\\n\\n⚠️ HAY DIFERENCIA. ¿Continuar?';
+                mensaje += '\n\n⚠️ HAY DIFERENCIA. ¿Continuar?';
             }
 
             return confirm(mensaje);

@@ -29,7 +29,6 @@ include_once __DIR__ . "/../auth.php";
                         <i class="fas fa-lock"></i>
                     </span>
                     <h1 class='message-title' style="color: #e74c3c;">Caja Cerrada</h1>
-
                     <div class='message-content'>
                         No puedes realizar esta operación porque <strong>la caja está cerrada</strong>.<br><br>
                         Para registrar ventas, compras o movimientos de caja, primero debes abrir la caja del día.
