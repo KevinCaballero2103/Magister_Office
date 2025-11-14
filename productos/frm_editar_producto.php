@@ -1,9 +1,13 @@
 <?php
 include_once __DIR__ . "/../auth.php";
+include_once "../db.php";
+
+// Registrar acceso
+registrarActividad('ACCESO', 'PRODUCTOS', 'Acceso a edición de producto', null, null);
+
 if (!isset($_GET["id"])) {
     $error = "Necesito del parámetro id para identificar al producto.";
 } else {
-    include '../db.php';
     $id = $_GET["id"];
     
     // Obtener datos del producto
@@ -55,7 +59,6 @@ if (isset($producto)) {
     <link href="../css/formularios.css" rel="stylesheet">
     <link href="../css/productos-proveedores.css" rel="stylesheet">
     
-    <!-- Solo estilos específicos -->
     <style>
         .main-content {
             background: #2c3e50 !important;
@@ -71,6 +74,30 @@ if (isset($producto)) {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* NUEVO: Estilos para sección de auditoría */
+        .audit-section {
+            background: rgba(52, 152, 219, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .audit-title {
+            color: #3498db;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .audit-help {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -90,7 +117,7 @@ if (isset($producto)) {
                 const errorHTML = `
                     <div class='error-container'>
                         <div class='error-title'>Error</div>
-                        <div class='error-message'>${errorMessage}</div>
+                        <div class='error-message'>\${errorMessage}</div>
                         <a href='./listado_producto.php' class='button'>
                             Volver al Listado
                         </a>
@@ -124,22 +151,22 @@ if (isset($producto)) {
                     const precio = selected ? selected.precio : '';
                     
                     html += `
-                        <div class="provider-item ${isSelected ? 'selected' : ''}" onclick="toggleProvider(${provider.id}, '${provider.nombre_proveedor.replace(/'/g, "\\'")}', event)" id="provider-${provider.id}">
+                        <div class="provider-item \${isSelected ? 'selected' : ''}" onclick="toggleProvider(\${provider.id}, '\${provider.nombre_proveedor.replace(/'/g, "\\'")}', event)" id="provider-\${provider.id}">
                             <div class="provider-info">
-                                <input type="checkbox" class="provider-checkbox" ${isSelected ? 'checked' : ''} 
-                                       onchange="toggleProvider(${provider.id}, '${provider.nombre_proveedor.replace(/'/g, "\\'")}', event)"
-                                       id="checkbox-${provider.id}">
-                                <span>${provider.nombre_proveedor}</span>
+                                <input type="checkbox" class="provider-checkbox" \${isSelected ? 'checked' : ''} 
+                                       onchange="toggleProvider(\${provider.id}, '\${provider.nombre_proveedor.replace(/'/g, "\\'")}', event)"
+                                       id="checkbox-\${provider.id}">
+                                <span>\${provider.nombre_proveedor}</span>
                             </div>
                             <div>
                                 <span style="color: rgba(255,255,255,0.7); font-size: 0.8rem; margin-right: 5px;">Precio:</span>
                                 <input type="number" step="0.01" min="0" class="price-input" 
-                                       placeholder="0.00" value="${precio}"
-                                       onchange="updatePrice(${provider.id}, this.value)" 
-                                       oninput="updatePrice(${provider.id}, this.value)"
+                                       placeholder="0.00" value="\${precio}"
+                                       onchange="updatePrice(\${provider.id}, this.value)" 
+                                       oninput="updatePrice(\${provider.id}, this.value)"
                                        onclick="event.stopPropagation()"
-                                       id="price-${provider.id}"
-                                       ${!isSelected ? 'disabled' : ''}>
+                                       id="price-\${provider.id}"
+                                       \${!isSelected ? 'disabled' : ''}>
                             </div>
                         </div>
                     `;
@@ -158,11 +185,11 @@ if (isset($producto)) {
                 
                 selectedProviders.forEach(provider => {
                     html += `
-                        <span class="selected-provider-tag" onclick="removeProvider(${provider.id})" title="Click para eliminar">
-                            ${provider.nombre} (${provider.precio || '0.00'}) ×
+                        <span class="selected-provider-tag" onclick="removeProvider(\${provider.id})" title="Click para eliminar">
+                            \${provider.nombre} (\${provider.precio || '0.00'}) ×
                         </span>
-                        <input type="hidden" name="proveedores[${provider.id}][id]" value="${provider.id}">
-                        <input type="hidden" name="proveedores[${provider.id}][precio]" value="${provider.precio || '0.00'}">
+                        <input type="hidden" name="proveedores[\${provider.id}][id]" value="\${provider.id}">
+                        <input type="hidden" name="proveedores[\${provider.id}][precio]" value="\${provider.precio || '0.00'}">
                     `;
                 });
                 
@@ -198,9 +225,9 @@ if (isset($producto)) {
                 const isSelected = selected !== undefined;
                 const precio = selected ? selected.precio : '';
                 
-                const providerElement = document.getElementById(`provider-${id}`);
-                const checkbox = document.getElementById(`checkbox-${id}`);
-                const priceInput = document.getElementById(`price-${id}`);
+                const providerElement = document.getElementById(`provider-\${id}`);
+                const checkbox = document.getElementById(`checkbox-\${id}`);
+                const priceInput = document.getElementById(`price-\${id}`);
                 
                 if (providerElement && checkbox && priceInput) {
                     if (isSelected) {
@@ -228,9 +255,9 @@ if (isset($producto)) {
             window.removeProvider = function(id) {
                 selectedProviders = selectedProviders.filter(p => p.id != id);
                 
-                const providerElement = document.getElementById(`provider-${id}`);
-                const checkbox = document.getElementById(`checkbox-${id}`);
-                const priceInput = document.getElementById(`price-${id}`);
+                const providerElement = document.getElementById(`provider-\${id}`);
+                const checkbox = document.getElementById(`checkbox-\${id}`);
+                const priceInput = document.getElementById(`price-\${id}`);
                 
                 if (providerElement && checkbox && priceInput) {
                     providerElement.classList.remove('selected');
@@ -247,7 +274,7 @@ if (isset($producto)) {
                     <h1 class='form-title'>Editar Producto</h1>
                     
                     <form action='./editar_producto.php' method='post' onsubmit='return validateForm()'>
-                        <input type='hidden' name='id' value='${producto.id}'>
+                        <input type='hidden' name='id' value='\${producto.id}'>
                         
                         <div class='columns'>
                             <div class='column is-6'>
@@ -256,7 +283,7 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <input class='input' type='text' name='nombre_producto' id='nombre_producto' 
                                                placeholder='Ingresa el nombre del producto' required 
-                                               value='${producto.nombre_producto || ''}'>
+                                               value='\${producto.nombre_producto || ''}'>
                                     </div>
                                 </div>
 
@@ -265,7 +292,7 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <input class='input' type='text' name='codigo_producto' id='codigo_producto' 
                                                placeholder='Código de barras o SKU'
-                                               value='${producto.codigo_producto || ''}'>
+                                               value='\${producto.codigo_producto || ''}'>
                                     </div>
                                 </div>
 
@@ -274,7 +301,7 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <input class='input' type='number' step='0.01' min='0' name='precio_venta' id='precio_venta' 
                                                placeholder='0.00' required
-                                               value='${producto.precio_venta || ''}'>
+                                               value='\${producto.precio_venta || ''}'>
                                     </div>
                                 </div>
                             </div>
@@ -285,7 +312,7 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <input class='input' type='number' min='0' name='stock_actual' id='stock_actual' 
                                                placeholder='Cantidad disponible'
-                                               value='${producto.stock_actual || 0}'>
+                                               value='\${producto.stock_actual || 0}'>
                                     </div>
                                 </div>
 
@@ -294,7 +321,7 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <input class='input' type='number' min='1' name='stock_minimo' id='stock_minimo' 
                                                placeholder='Cantidad mínima'
-                                               value='${producto.stock_minimo || 5}'>
+                                               value='\${producto.stock_minimo || 5}'>
                                     </div>
                                 </div>
 
@@ -303,11 +330,26 @@ if (isset($producto)) {
                                     <div class='control'>
                                         <div class='select is-fullwidth'>
                                             <select name='estado_producto' id='estado_producto'>
-                                                <option value='1' ${(producto.estado_producto == 1 || producto.estado == 1) ? 'selected' : ''}>Activo</option>
-                                                <option value='0' ${(producto.estado_producto == 0 || producto.estado == 0) ? 'selected' : ''}>Inactivo</option>
+                                                <option value='1' \${(producto.estado_producto == 1 || producto.estado == 1) ? 'selected' : ''}>Activo</option>
+                                                <option value='0' \${(producto.estado_producto == 0 || producto.estado == 0) ? 'selected' : ''}>Inactivo</option>
                                             </select>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class='audit-section'>
+                            <div class='audit-title'>📝 Razón del Cambio (Auditoría)</div>
+                            <div class='audit-help'>
+                                Explica brevemente por qué estás modificando este producto. Esto quedará registrado en el historial de auditoría.
+                            </div>
+                            <div class='field'>
+                                <div class='control'>
+                                    <textarea class='textarea' name='razon_cambio' id='razon_cambio' rows='3' 
+                                              placeholder='Ejemplo: Actualización de precio por inflación, Cambio de proveedor, Corrección de error en stock...'
+                                              required
+                                              style='background: rgba(236, 240, 241, 0.1) !important; border: 2px solid rgba(52, 152, 219, 0.5) !important; color: white !important;'></textarea>
                                 </div>
                             </div>
                         </div>
@@ -333,15 +375,15 @@ if (isset($producto)) {
 
                         <div class='button-group'>
                             <button type='submit' class='button'>
-                                Guardar Cambios
+                                💾 Guardar Cambios
                             </button>
                             
                             <button type='reset' class='secondary-button' onclick='resetForm()'>
-                                Restaurar Valores
+                                🔄 Restaurar Valores
                             </button>
                             
                             <a href='./listado_producto.php' class='secondary-button'>
-                                Volver al Listado
+                                ⬅️ Volver al Listado
                             </a>
                         </div>
                     </form>
@@ -355,18 +397,31 @@ if (isset($producto)) {
             window.validateForm = function() {
                 const nombre = document.getElementById('nombre_producto').value.trim();
                 const precio = document.getElementById('precio_venta').value;
+                const razon = document.getElementById('razon_cambio').value.trim();
                 
                 if (!nombre) {
-                    alert('Por favor, ingresa el nombre del producto');
+                    alert('⚠️ Por favor, ingresa el nombre del producto');
                     return false;
                 }
                 
                 if (!precio || parseFloat(precio) <= 0) {
-                    alert('Por favor, ingresa un precio de venta válido');
+                    alert('⚠️ Por favor, ingresa un precio de venta válido');
+                    return false;
+                }
+
+                if (!razon) {
+                    alert('⚠️ Por favor, explica la razón del cambio para la auditoría');
+                    document.getElementById('razon_cambio').focus();
+                    return false;
+                }
+
+                if (razon.length < 10) {
+                    alert('⚠️ La razón del cambio debe tener al menos 10 caracteres');
+                    document.getElementById('razon_cambio').focus();
                     return false;
                 }
                 
-                return true;
+                return confirm('¿Confirmar la actualización del producto?\\n\\nRazón: ' + razon);
             };
             
             window.resetForm = function() {

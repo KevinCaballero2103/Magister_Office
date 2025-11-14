@@ -7,7 +7,6 @@ if (!tienePermiso(['ADMINISTRADOR', 'CAJERO'])) {
 include_once "../db.php";
 $cajaAbierta = requiereCajaAbierta();
 
-// Todos pueden ver cuotas, pero solo ADMIN y CAJERO pueden cobrarlas
 $puedeModificar = tienePermiso(['ADMINISTRADOR', 'CAJERO']);
 
 registrarActividad('ACCESO', 'VENTAS', 'Acceso a gestión de cuotas', null, null);
@@ -95,6 +94,9 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/listados.css" rel="stylesheet">
     <link href="../css/estadisticas.css" rel="stylesheet">
+    <!-- 🔗 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
     <style>
         .main-content { background: #2c3e50 !important; color: white; }
         .cuota-pendiente { background: rgba(230, 126, 34, 0.1) !important; }
@@ -110,12 +112,8 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
         .badge-pendiente { background: linear-gradient(45deg, #f39c12, #f1c40f); color: #2c3e50; }
         .badge-pagada { background: linear-gradient(45deg, #27ae60, #2ecc71); color: white; }
         .badge-vencida { background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        .btn-cobrar {
-            background: linear-gradient(45deg, #27ae60, #2ecc71) !important;
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
+        .btn-cobrar, .btn-imprimir, .btn-pagare {
             color: white !important;
             padding: 5px 12px;
             border-radius: 6px;
@@ -126,40 +124,23 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
             transition: all 0.3s ease;
             text-decoration: none !important;
             display: inline-block;
+            margin: 2px;
         }
-        .btn-cobrar:hover {
-            background: linear-gradient(45deg, #2ecc71, #27ae60) !important;
-            transform: translateY(-2px);
-            color: white !important;
-        }
-        .btn-cobrar:disabled {
-            background: rgba(128,128,128,0.3) !important;
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-        .progreso-cuotas {
-            background: rgba(0,0,0,0.2);
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-        }
-        .barra-progreso {
-            background: rgba(255,255,255,0.1);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-        .barra-progreso-fill {
-            background: linear-gradient(45deg, #27ae60, #2ecc71);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
+        .btn-cobrar { background: linear-gradient(45deg, #27ae60, #2ecc71) !important; }
+        .btn-cobrar:hover { background: linear-gradient(45deg, #2ecc71, #27ae60) !important; transform: translateY(-2px); color: white !important; }
+        .btn-cobrar:disabled { background: rgba(128,128,128,0.3) !important; cursor: not-allowed; opacity: 0.5; }
+        .btn-imprimir { background: linear-gradient(45deg, #3498db, #2980b9) !important; }
+        .btn-imprimir:hover { background: linear-gradient(45deg, #2980b9, #3498db) !important; transform: translateY(-2px); color: white !important; }
+        .btn-pagare { background: linear-gradient(45deg, #9b59b6, #8e44ad) !important; }
+        .btn-pagare:hover { background: linear-gradient(45deg, #8e44ad, #9b59b6) !important; transform: translateY(-2px); color: white !important; }
+        .progreso-cuotas { background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 0.75rem; }
+        .barra-progreso { background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+        .barra-progreso-fill { background: linear-gradient(45deg, #27ae60, #2ecc71); height: 100%; transition: width 0.3s ease; }
     </style>
 </head>
 <body>
     <?php include '../menu.php'; ?>
-    
+
     <script>
         const cuotas = <?php echo $cuotasJSON; ?>;
         const clientes = <?php echo $clientesJSON; ?>;
@@ -190,13 +171,16 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
                     const estaVencida = cuota.estado === 'PENDIENTE' && vencimiento < hoy;
                     
                     let claseEstado = cuota.estado === 'PAGADA' ? 'badge-pagada' : (estaVencida ? 'badge-vencida' : 'badge-pendiente');
-                    let textoEstado = cuota.estado === 'PAGADA' ? '✓ PAGADA' : (estaVencida ? '⚠️ VENCIDA' : '⏳ PENDIENTE');
+                    let textoEstado = cuota.estado === 'PAGADA' 
+                        ? '<i class="fa-solid fa-check"></i> PAGADA' 
+                        : (estaVencida ? '<i class="fa-solid fa-triangle-exclamation"></i> VENCIDA' 
+                        : '<i class="fa-solid fa-hourglass-half"></i> PENDIENTE');
                     let claseRow = cuota.estado === 'PAGADA' ? 'cuota-pagada' : (estaVencida ? 'cuota-vencida' : 'cuota-pendiente');
                     
                     const progreso = Math.round((cuota.cuotas_pagadas / cuota.total_cuotas) * 100);
                     const progresoHTML = `
                         <div class="progreso-cuotas">
-                            ${cuota.cuotas_pagadas}/${cuota.total_cuotas} cuotas pagadas
+                            ${cuota.cuotas_pagadas}/${cuota.total_cuotas} cuotas pagadas (${progreso}%)
                             <div class="barra-progreso">
                                 <div class="barra-progreso-fill" style="width: ${progreso}%"></div>
                             </div>
@@ -206,24 +190,34 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
                     let accionHTML = '';
                     if (cuota.estado === 'PENDIENTE') {
                         if (puedeModificar) {
-                            accionHTML = `<a href="./cobrar_cuota.php?id=${cuota.id}" class="btn-cobrar">💰 COBRAR</a>`;
+                            accionHTML = `<a href="./cobrar_cuota.php?id=${cuota.id}" class="btn-cobrar">
+                                <i class="fa-solid fa-hand-holding-dollar"></i> COBRAR
+                            </a>`;
                         } else {
                             accionHTML = '<span style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">Sin permisos</span>';
                         }
                     } else {
-                        accionHTML = `<small style="color: #27ae60;">Pagada: ${formatDate(cuota.fecha_pago)}</small>`;
+                        accionHTML = `<button class="btn-imprimir" onclick="imprimirReciboCuota(${cuota.id})">
+                            <i class="fa-solid fa-print"></i> Recibo
+                        </button>`;
+                        
+                        if (cuota.cuotas_pagadas === cuota.total_cuotas) {
+                            accionHTML += `<button class="btn-pagare" onclick="imprimirPagare(${cuota.id_venta})">
+                                <i class="fa-regular fa-file-lines"></i> Pagaré
+                            </button>`;
+                        }
+                        accionHTML += `<br><small style="color: #27ae60;">Pagada: ${formatDate(cuota.fecha_pago)}</small>`;
                     }
                     
                     const diasInfo = cuota.estado === 'PENDIENTE' ? 
                         (cuota.dias_hasta_vencimiento < 0 ? 
                             `<span style="color: #e74c3c;">Vencida hace ${Math.abs(cuota.dias_hasta_vencimiento)} días</span>` :
-                            `<span style="color: #f39c12;">Vence en ${cuota.dias_hasta_vencimiento} días</span>`) :
-                        '';
+                            `<span style="color: #f39c12;">Vence en ${cuota.dias_hasta_vencimiento} días</span>`) : '';
                     
                     cuotasHTML += `
                         <tr class="${claseRow}">
                             <td><strong>Venta #${cuota.id_venta}</strong><br><small>${cuota.numero_venta || 'S/N'}</small></td>
-                            <td>${cuota.nombre_cliente || 'Cliente Genérico'}<br>${cuota.telefono_cliente ? '<small>☎ ' + cuota.telefono_cliente + '</small>' : ''}</td>
+                            <td>${cuota.nombre_cliente || 'Cliente Genérico'}<br>${cuota.telefono_cliente ? '<small><i class="fa-solid fa-phone"></i> ' + cuota.telefono_cliente + '</small>' : ''}</td>
                             <td><strong>Cuota ${cuota.numero}/${cuota.total_cuotas}</strong>${progresoHTML}</td>
                             <td><strong>${formatMoney(cuota.monto)}</strong></td>
                             <td>${formatDate(cuota.fecha_vencimiento)}<br>${diasInfo}</td>
@@ -238,31 +232,31 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
             
             const contentHTML = `
                 <div class="list-container">
-                    <h1 class="list-title">💳 Gestión de Cuotas de Crédito</h1>
+                    <h1 class="list-title"><i class="fa-solid fa-credit-card"></i> Gestión de Cuotas de Crédito</h1>
                     
                     <div class="stats-container" style="margin-bottom: 30px;">
                         <div class="stat-card">
                             <div class="stat-number stat-info">${stats.total_cuotas || 0}</div>
-                            <div class="stat-label">📋 Total Cuotas</div>
+                            <div class="stat-label"><i class="fa-solid fa-clipboard-list"></i> Total Cuotas</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number stat-warning">${stats.pendientes || 0}</div>
-                            <div class="stat-label">⏳ Pendientes</div>
+                            <div class="stat-label"><i class="fa-solid fa-hourglass-half"></i> Pendientes</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number stat-success">${stats.pagadas || 0}</div>
-                            <div class="stat-label">✓ Pagadas</div>
+                            <div class="stat-label"><i class="fa-solid fa-check"></i> Pagadas</div>
                         </div>
                     </div>
                     
                     <div class="stats-container" style="margin-bottom: 30px;">
                         <div class="stat-card">
                             <div class="stat-number stat-warning">${formatMoney(stats.monto_pendiente || 0)}</div>
-                            <div class="stat-label">💰 Por Cobrar</div>
+                            <div class="stat-label"><i class="fa-solid fa-sack-dollar"></i> Por Cobrar</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number stat-success">${formatMoney(stats.monto_cobrado || 0)}</div>
-                            <div class="stat-label">✓ Cobrado</div>
+                            <div class="stat-label"><i class="fa-solid fa-check"></i> Cobrado</div>
                         </div>
                     </div>
                     
@@ -282,14 +276,16 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
                                     <label>Estado:</label>
                                     <div class="select">
                                         <select name="estado" class="search-input">
-                                            <option value="PENDIENTE" ${<?php echo $estado_cuota === 'PENDIENTE' ? 'true' : 'false'; ?> ? 'selected' : ''}>⏳ PENDIENTE</option>
-                                            <option value="PAGADA" ${<?php echo $estado_cuota === 'PAGADA' ? 'true' : 'false'; ?> ? 'selected' : ''}>✓ PAGADA</option>
-                                            <option value="TODAS" ${<?php echo $estado_cuota === 'TODAS' ? 'true' : 'false'; ?> ? 'selected' : ''}>-- TODAS --</option>
+                                            <option value="PENDIENTE" ${"<?php echo $estado_cuota === 'PENDIENTE' ? 'selected' : ''; ?>"}><i class="fa-solid fa-hourglass-half"></i> PENDIENTE</option>
+                                            <option value="PAGADA" ${"<?php echo $estado_cuota === 'PAGADA' ? 'selected' : ''; ?>"}><i class="fa-solid fa-check"></i> PAGADA</option>
+                                            <option value="TODAS" ${"<?php echo $estado_cuota === 'TODAS' ? 'selected' : ''; ?>"}>-- TODAS --</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="search-field">
-                                    <button type="submit" class="button" style="margin-top: 22px;">🔍 Filtrar</button>
+                                    <button type="submit" class="button" style="margin-top: 22px;">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Filtrar
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -305,7 +301,7 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
                                     <th>MONTO</th>
                                     <th>VENCIMIENTO</th>
                                     <th>ESTADO</th>
-                                    <th>ACCIÓN</th>
+                                    <th>ACCIONES</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -315,14 +311,21 @@ $puedeModificarJSON = $puedeModificar ? 'true' : 'false';
                     </div>
                     
                     <div style="text-align: center; margin-top: 25px;">
-                        <a href="./listado_ventas.php" class="button">📋 Ver Ventas</a>
-                        <a href="../index.php" class="secondary-button">🏠 Inicio</a>
+                        <a href="./listado_ventas.php" class="button"><i class="fa-solid fa-clipboard-list"></i> Ver Ventas</a>
+                        <a href="../index.php" class="secondary-button"><i class="fa-solid fa-house"></i> Inicio</a>
                     </div>
                 </div>
             `;
             
             mainContent.innerHTML = contentHTML;
         });
+        
+        function imprimirReciboCuota(idCuota) {
+            window.open('./imprimir_comprobante.php?tipo=RECIBO_CUOTA&id_cuota=' + idCuota, '_blank', 'width=900,height=700');
+        }
+        function imprimirPagare(idVenta) {
+            window.open('./imprimir_comprobante.php?tipo=PAGARE&id_venta=' + idVenta, '_blank', 'width=900,height=700');
+        }
     </script>
 </body>
 </html>

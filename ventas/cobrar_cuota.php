@@ -9,21 +9,21 @@ $cajaAbierta = requiereCajaAbierta();
 $mensaje = "";
 $tipo = "";
 $titulo = "";
+$id_cuota_cobrada = null;
+$todasCuotasPagadas = false;
+$id_venta_completa = null;
 
 try {
-    // Verificar que viene el ID
     if (!isset($_GET['id']) && !isset($_POST['id_cuota'])) {
         throw new Exception("ID de cuota no especificado");
     }
     
     $id_cuota = isset($_POST['id_cuota']) ? intval($_POST['id_cuota']) : intval($_GET['id']);
     
-    // Si es POST, procesar el cobro
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fecha_pago = isset($_POST['fecha_pago']) ? $_POST['fecha_pago'] : date('Y-m-d');
         $monto_recibido = isset($_POST['monto_recibido']) ? floatval($_POST['monto_recibido']) : 0;
         
-        // Obtener datos de la cuota
         $sentenciaCuota = $conexion->prepare("
             SELECT c.*, v.numero_venta, v.id_cliente,
                    CONCAT(COALESCE(cli.nombre_cliente, ''), ' ', COALESCE(cli.apellido_cliente, '')) as nombre_cliente
@@ -49,7 +49,6 @@ try {
         
         $conexion->beginTransaction();
         
-        // 1. Marcar cuota como PAGADA
         $sentenciaActualizar = $conexion->prepare("
             UPDATE cuotas_venta 
             SET estado = 'PAGADA', fecha_pago = ? 
@@ -57,7 +56,6 @@ try {
         ");
         $sentenciaActualizar->execute([$fecha_pago, $id_cuota]);
         
-        // 2. Registrar movimiento en CAJA
         $usuarioActual = getUsuarioActual();
         $nombreCliente = $cuota->nombre_cliente ?: 'Cliente Genérico';
         $concepto = "COBRO Cuota #{$cuota->numero} - Venta #{$cuota->id_venta} - {$nombreCliente}";
@@ -78,23 +76,36 @@ try {
             $observacion
         ]);
         
-        // 3. Registrar en log
+        $sentenciaVerificarCompleto = $conexion->prepare("
+            SELECT COUNT(*) as total, 
+                   SUM(CASE WHEN estado = 'PAGADA' THEN 1 ELSE 0 END) as pagadas
+            FROM cuotas_venta 
+            WHERE id_venta = ?
+        ");
+        $sentenciaVerificarCompleto->execute([$cuota->id_venta]);
+        $estadoCuotas = $sentenciaVerificarCompleto->fetch(PDO::FETCH_OBJ);
+        
+        $todasCuotasPagadas = ($estadoCuotas->total == $estadoCuotas->pagadas);
+        $id_venta_completa = $todasCuotasPagadas ? $cuota->id_venta : null;
+        
         registrarActividad(
             'COBRO_CUOTA',
             'VENTAS',
-            "Cuota cobrada: Venta #{$cuota->id_venta}, Cuota #{$cuota->numero}, Cliente: {$nombreCliente}",
+            "Cuota cobrada: Venta #{$cuota->id_venta}, Cuota #{$cuota->numero}, Cliente: {$nombreCliente}" . ($todasCuotasPagadas ? " - DEUDA CANCELADA (todas las cuotas pagadas)" : ""),
             null,
             [
                 'id_cuota' => $id_cuota,
                 'id_venta' => $cuota->id_venta,
                 'numero_cuota' => $cuota->numero,
                 'monto' => $cuota->monto,
-                'fecha_pago' => $fecha_pago
+                'fecha_pago' => $fecha_pago,
+                'todas_cuotas_pagadas' => $todasCuotasPagadas
             ]
         );
         
         $conexion->commit();
         
+        $id_cuota_cobrada = $id_cuota;
         $vuelto = $monto_recibido - $cuota->monto;
         
         $titulo = "✅ Cuota Cobrada Exitosamente";
@@ -109,10 +120,14 @@ try {
                     • Fecha: <strong>" . date('d/m/Y', strtotime($fecha_pago)) . "</strong><br>
                     • Cobrado por: <strong>" . $usuarioActual['nombre'] . "</strong><br><br>
                     ✅ Movimiento registrado en caja automáticamente";
+        
+        if ($todasCuotasPagadas) {
+            $mensaje .= "<br><br><strong style='color: #27ae60; font-size: 1.2rem;'>🎉 ¡DEUDA CANCELADA! Todas las cuotas han sido pagadas</strong>";
+        }
+        
         $tipo = "success";
         
     } else {
-        // Mostrar formulario de cobro
         $sentenciaCuota = $conexion->prepare("
             SELECT c.*, v.numero_venta, v.total_venta, v.fecha_venta,
                    CONCAT(COALESCE(cli.nombre_cliente, ''), ' ', COALESCE(cli.apellido_cliente, '')) as nombre_cliente,
@@ -345,7 +360,7 @@ try {
                     }
                     
                     const vuelto = recibido - montoCuota;
-                    return confirm(`¿Confirmar cobro de cuota?\\n\\nMonto: ${formatMoney(montoCuota)}\\nRecibido: ${formatMoney(recibido)}\\nVuelto: ${formatMoney(vuelto)}`);
+                    return confirm(`¿Confirmar cobro de cuota?\n\nMonto: ${formatMoney(montoCuota)}\nRecibido: ${formatMoney(recibido)}\nVuelto: ${formatMoney(vuelto)}`);
                 }
             </script>
         </body>
@@ -372,6 +387,24 @@ try {
     <style>
         body { background: #2c3e50 !important; }
         .main-content { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: #2c3e50 !important; }
+        .print-button {
+            color: white;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: none;
+            cursor: pointer;
+        }
+        .print-button:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -382,8 +415,28 @@ try {
             const tipo = <?php echo json_encode($tipo); ?>;
             const titulo = <?php echo json_encode($titulo); ?>;
             const mensaje = <?php echo json_encode($mensaje); ?>;
+            const idCuota = <?php echo json_encode($id_cuota_cobrada); ?>;
+            const todasPagadas = <?php echo $todasCuotasPagadas ? 'true' : 'false'; ?>;
+            const idVentaCompleta = <?php echo json_encode($id_venta_completa); ?>;
 
             const icono = tipo === 'success' ? '💰✅' : '❌';
+            
+            let botonesHTML = '';
+            
+            if (tipo === 'success') {
+                if (idCuota) {
+                    botonesHTML += `<button class='print-button' onclick="imprimirReciboCuota(${idCuota})">🖨️ Imprimir Recibo de Cuota</button>`;
+                }
+                
+                if (todasPagadas && idVentaCompleta) {
+                    botonesHTML += `<button class='print-button' onclick="imprimirPagare(${idVentaCompleta})" style="background: linear-gradient(45deg, #27ae60, #2ecc71);">📄 Imprimir Pagaré (Deuda Cancelada)</button>`;
+                }
+                
+                botonesHTML += "<a href='./gestionar_cuotas.php' class='action-button'>📋 Ver Cuotas</a>";
+                botonesHTML += "<a href='./listado_ventas.php' class='secondary-button'>💰 Ver Ventas</a>";
+            } else {
+                botonesHTML += "<a href='./gestionar_cuotas.php' class='secondary-button'>⬅️ Volver</a>";
+            }
 
             mainContent.innerHTML = `
                 <div class='message-container'>
@@ -391,12 +444,19 @@ try {
                     <h1 class='message-title'>${titulo}</h1>
                     <div class='message-content'>${mensaje}</div>
                     <div class='button-group'>
-                        <a href='./gestionar_cuotas.php' class='action-button'>📋 Ver Cuotas</a>
-                        <a href='./listado_ventas.php' class='secondary-button'>💰 Ver Ventas</a>
+                        ${botonesHTML}
                     </div>
                 </div>
             `;
         });
+        
+        function imprimirReciboCuota(idCuota) {
+            window.open('./imprimir_comprobante.php?tipo=RECIBO_CUOTA&id_cuota=' + idCuota, '_blank', 'width=900,height=700');
+        }
+        
+        function imprimirPagare(idVenta) {
+            window.open('./imprimir_comprobante.php?tipo=PAGARE&id_venta=' + idVenta, '_blank', 'width=900,height=700');
+        }
     </script>
 </body>
 </html>

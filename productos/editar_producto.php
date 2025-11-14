@@ -8,6 +8,9 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         include_once "../db.php";
         
+        // Obtener usuario actual
+        $usuarioActual = getUsuarioActual();
+        
         // Iniciar transacción
         $conexion->beginTransaction();
         
@@ -18,13 +21,83 @@ try {
         $stock_actual = $_POST["stock_actual"];
         $stock_minimo = $_POST["stock_minimo"];
         $estado_producto = $_POST["estado_producto"];
+        $razon_cambio = trim($_POST["razon_cambio"]); // NUEVO
         $proveedores = isset($_POST["proveedores"]) ? $_POST["proveedores"] : array();
         
-        // Actualizar datos del producto
-        $sentencia = $conexion->prepare("UPDATE productos SET nombre_producto=?, codigo_producto=?, precio_venta=?, stock_actual=?, stock_minimo=?, estado_producto=? WHERE id = ?");
-        $resultado = $sentencia->execute([$nombre_producto, $codigo_producto, $precio_venta, $stock_actual, $stock_minimo, $estado_producto, $id]);
+        // NUEVO: Obtener datos anteriores para auditoría
+        $sentenciaAnterior = $conexion->prepare("SELECT * FROM productos WHERE id = ?");
+        $sentenciaAnterior->execute([$id]);
+        $datosAnteriores = $sentenciaAnterior->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$datosAnteriores) {
+            throw new Exception("El producto no existe");
+        }
+        
+        // Actualizar datos del producto con usuario de modificación
+        $sentencia = $conexion->prepare("UPDATE productos SET 
+            nombre_producto=?, 
+            codigo_producto=?, 
+            precio_venta=?, 
+            stock_actual=?, 
+            stock_minimo=?, 
+            estado_producto=?,
+            usuario_modificacion=?,
+            fecha_modificacion=NOW()
+            WHERE id = ?");
+        
+        $resultado = $sentencia->execute([
+            $nombre_producto, 
+            $codigo_producto, 
+            $precio_venta, 
+            $stock_actual, 
+            $stock_minimo, 
+            $estado_producto,
+            $usuarioActual['nombre'],
+            $id
+        ]);
         
         if ($resultado === TRUE) {
+            // NUEVO: Preparar datos nuevos para auditoría
+            $datosNuevos = [
+                'nombre_producto' => $nombre_producto,
+                'codigo_producto' => $codigo_producto,
+                'precio_venta' => $precio_venta,
+                'stock_actual' => $stock_actual,
+                'stock_minimo' => $stock_minimo,
+                'estado_producto' => $estado_producto
+            ];
+            
+            // NUEVO: Detectar cambios específicos
+            $cambios = [];
+            if ($datosAnteriores['nombre_producto'] != $nombre_producto) {
+                $cambios[] = "Nombre: '{$datosAnteriores['nombre_producto']}' → '$nombre_producto'";
+            }
+            if ($datosAnteriores['precio_venta'] != $precio_venta) {
+                $cambios[] = "Precio: ₲ {$datosAnteriores['precio_venta']} → ₲ $precio_venta";
+            }
+            if ($datosAnteriores['stock_actual'] != $stock_actual) {
+                $cambios[] = "Stock: {$datosAnteriores['stock_actual']} → $stock_actual";
+            }
+            if ($datosAnteriores['stock_minimo'] != $stock_minimo) {
+                $cambios[] = "Stock mínimo: {$datosAnteriores['stock_minimo']} → $stock_minimo";
+            }
+            if ($datosAnteriores['estado_producto'] != $estado_producto) {
+                $estadoAntes = $datosAnteriores['estado_producto'] == 1 ? 'Activo' : 'Inactivo';
+                $estadoDespues = $estado_producto == 1 ? 'Activo' : 'Inactivo';
+                $cambios[] = "Estado: $estadoAntes → $estadoDespues";
+            }
+            
+            $descripcionCambios = !empty($cambios) ? implode(', ', $cambios) : 'Sin cambios detectados';
+            
+            // NUEVO: Registrar en log de actividades con razón del cambio
+            registrarActividad(
+                'EDITAR',
+                'PRODUCTOS',
+                "Producto editado: $nombre_producto (ID: $id) - Cambios: $descripcionCambios - Razón: $razon_cambio",
+                $datosAnteriores,
+                $datosNuevos
+            );
+            
             // Eliminar relaciones proveedor-producto existentes
             $sentenciaEliminar = $conexion->prepare("DELETE FROM proveedor_producto WHERE id_producto = ?");
             $sentenciaEliminar->execute([$id]);
@@ -44,28 +117,46 @@ try {
             // Confirmar transacción
             $conexion->commit();
             
-            $titulo = "Producto Actualizado Correctamente";
+            $titulo = "✅ Producto Actualizado Correctamente";
             $cantidadProveedores = count($proveedores);
+            
+            $mensaje = "El producto <strong>$nombre_producto</strong> ha sido actualizado exitosamente por <strong>{$usuarioActual['nombre']}</strong>.<br><br>";
+            $mensaje .= "<strong>Cambios realizados:</strong><br>";
+            $mensaje .= !empty($cambios) ? "• " . implode("<br>• ", $cambios) : "• Sin cambios en los datos principales";
+            $mensaje .= "<br><br><strong>Razón del cambio:</strong><br>$razon_cambio<br><br>";
+            
             if ($cantidadProveedores > 0) {
-                $mensaje = "Los datos del producto <strong>$nombre_producto</strong> han sido actualizados exitosamente con <strong>$cantidadProveedores</strong> proveedor(es) asociado(s).";
+                $mensaje .= "Proveedores asociados: <strong>$cantidadProveedores</strong>";
             } else {
-                $mensaje = "Los datos del producto <strong>$nombre_producto</strong> han sido actualizados exitosamente. No tiene proveedores asociados actualmente.";
+                $mensaje .= "Sin proveedores asociados actualmente";
             }
+            
             $tipo = "success";
         } else {
             $conexion->rollback();
-            $titulo = "Error al Actualizar Producto";
+            $titulo = "❌ Error al Actualizar Producto";
             $mensaje = "No se pudo actualizar el producto. Por favor, verifica los datos e intenta nuevamente.";
             $tipo = "error";
+            
+            // Registrar error
+            registrarActividad('ERROR', 'PRODUCTOS', "Error al actualizar producto ID: $id", null, null);
         }
+
+    } else {
+        throw new Exception("Método de solicitud no válido");
     }
 } catch (Exception $e) {
-    if ($conexion->inTransaction()) {
+    if (isset($conexion) && $conexion->inTransaction()) {
         $conexion->rollback();
     }
-    $titulo = "Error del Sistema";
-    $mensaje = "Ocurrió un error inesperado: " . $e->getMessage();
+    $titulo = "❌ Error del Sistema";
+    $mensaje = "Ocurrió un error inesperado: " . htmlspecialchars($e->getMessage());
     $tipo = "error";
+    
+    // Registrar error en log
+    if (isset($usuarioActual)) {
+        registrarActividad('ERROR', 'PRODUCTOS', "Error al editar producto: " . $e->getMessage(), null, null);
+    }
 }
 ?>
 
@@ -74,20 +165,23 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $titulo; ?></title>
+    <title><?php echo htmlspecialchars($titulo); ?></title>
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/mensajes.css" rel="stylesheet">
     
     <style>
+        body { background: #2c3e50 !important; }
         .main-content {
-            background: #2c3e50 !important;
-            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            padding: 20px;
+            background: #2c3e50 !important;
         }
-
+        .message-container {
+            max-width: 700px;
+        }
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -106,30 +200,30 @@ try {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
-            const tipo = '<?php echo $tipo; ?>';
-            const titulo = '<?php echo addslashes($titulo); ?>';
-            const mensaje = '<?php echo addslashes($mensaje); ?>';
+            const tipo = <?php echo json_encode($tipo); ?>;
+            const titulo = <?php echo json_encode($titulo); ?>;
+            const mensaje = <?php echo json_encode($mensaje); ?>;
             
             const icono = tipo === 'success' ? '✅' : '❌';
             const claseIcono = tipo === 'success' ? 'success-icon' : 'error-icon';
             
             const contentHTML = `
                 <div class='message-container'>
-                    <span class='status-icon ${claseIcono}'>${icono}</span>
+                    <span class='status-icon \${claseIcono}'>\${icono}</span>
                     
-                    <h1 class='message-title'>${titulo}</h1>
+                    <h1 class='message-title'>\${titulo}</h1>
                     
                     <div class='message-content'>
-                        ${mensaje}
+                        \${mensaje}
                     </div>
                     
                     <div class='button-group'>
                         <a href='./listado_producto.php' class='action-button'>
-                            Ver Listado de Productos
+                            📋 Ver Listado de Productos
                         </a>
                         
                         <a href='./frm_guardar_producto.php' class='secondary-button'>
-                            Registrar Nuevo Producto
+                            ➕ Registrar Nuevo Producto
                         </a>
                     </div>
                 </div>

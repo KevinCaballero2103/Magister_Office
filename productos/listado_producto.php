@@ -2,10 +2,14 @@
 include_once __DIR__ . "/../auth.php";
 include_once "../db.php";
 
+// Registrar acceso al módulo
+registrarActividad('ACCESO', 'PRODUCTOS', 'Acceso al listado de productos', null, null);
+
 $estado = isset($_GET['estado']) ? $_GET['estado'] : "99";
 $tipo_busqueda = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : "todos";
 $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : "";
 $orden = isset($_GET['orden']) ? $_GET['orden'] : "nombre_asc";
+$filtro_stock = isset($_GET['filtro_stock']) ? $_GET['filtro_stock'] : "todos"; // NUEVO
 
 // Construir condiciones WHERE
 $condiciones = array();
@@ -13,6 +17,21 @@ $condiciones = array();
 // Filtro por estado
 if ($estado !== "99") {
     $condiciones[] = "p.estado_producto = " . intval($estado);
+}
+
+// NUEVO: Filtro por nivel de stock
+if ($filtro_stock !== "todos") {
+    switch ($filtro_stock) {
+        case "critico":
+            $condiciones[] = "p.stock_actual = 0";
+            break;
+        case "bajo":
+            $condiciones[] = "p.stock_actual > 0 AND p.stock_actual <= p.stock_minimo";
+            break;
+        case "normal":
+            $condiciones[] = "p.stock_actual > p.stock_minimo";
+            break;
+    }
 }
 
 // Filtro por búsqueda
@@ -74,6 +93,19 @@ $sentencia = $conexion->prepare("
 $sentencia->execute();
 $productos = $sentencia->fetchAll(PDO::FETCH_OBJ);
 
+// NUEVO: Calcular estadísticas de stock
+$sentenciaStats = $conexion->prepare("
+    SELECT 
+        COUNT(*) as total_productos,
+        SUM(CASE WHEN stock_actual = 0 THEN 1 ELSE 0 END) as stock_critico,
+        SUM(CASE WHEN stock_actual > 0 AND stock_actual <= stock_minimo THEN 1 ELSE 0 END) as stock_bajo,
+        SUM(CASE WHEN stock_actual > stock_minimo THEN 1 ELSE 0 END) as stock_normal
+    FROM productos
+    WHERE estado_producto = 1
+");
+$sentenciaStats->execute();
+$stats = $sentenciaStats->fetch(PDO::FETCH_OBJ);
+
 // Obtener proveedores asociados para cada producto
 $productosConProveedores = array();
 foreach ($productos as $producto) {
@@ -93,10 +125,12 @@ foreach ($productos as $producto) {
 
 // Convertir a JSON para JavaScript
 $productosJSON = json_encode($productosConProveedores);
+$statsJSON = json_encode($stats);
 $estadoActual = isset($_GET['estado']) ? $_GET['estado'] : '99';
 $tipoBusquedaActual = isset($_GET['tipo_busqueda']) ? $_GET['tipo_busqueda'] : 'todos';
 $busquedaActual = isset($_GET['busqueda']) ? $_GET['busqueda'] : '';
 $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
+$filtroStockActual = isset($_GET['filtro_stock']) ? $_GET['filtro_stock'] : 'todos';
 ?>
 
 <!DOCTYPE html>
@@ -107,6 +141,7 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
     <title>Listado de Productos</title>
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/listados.css" rel="stylesheet">
+    <link href="../css/estadisticas.css" rel="stylesheet">
     
     <style>
         .main-content {
@@ -127,25 +162,42 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
 
         /* Stock badges específicos de productos */
         .stock-normal {
-            color: #27ae60;
-            font-weight: bold;
+            color: #ffffff !important; /* Texto blanco */
+            font-weight: bold !important;
+            background: rgba(39, 174, 96, 0.25) !important; /* Verde tenue */
+            border: 1px solid #27ae60 !important; /* Borde verde */
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            display: inline-block;
         }
 
         .stock-bajo {
-            color: #f39c12;
-            font-weight: bold;
-            background: rgba(243, 156, 18, 0.1);
-            padding: 2px 6px;
-            border-radius: 8px;
+            color: #ffffff !important; /* Texto blanco */
+            font-weight: bold !important;
+            background: rgba(243, 156, 18, 0.25) !important; /* Amarillo tenue */
+            border: 1px solid #f39c12 !important; /* Borde amarillo */
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            display: inline-block;
         }
 
         .stock-critico {
-            color: #e74c3c;
-            font-weight: bold;
-            background: rgba(231, 76, 60, 0.1);
-            padding: 2px 6px;
-            border-radius: 8px;
+            color: #ffffff !important; /* Texto blanco */
+            font-weight: bold !important;
+            background: rgba(231, 76, 60, 0.25) !important; /* Rojo tenue */
+            border: 1px solid #e74c3c !important; /* Borde rojo */
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            display: inline-block;
         }
+
+        .stock-normal:hover,
+        .stock-bajo:hover,
+        .stock-critico:hover {
+            box-shadow: 0 0 6px currentColor;
+            transition: box-shadow 0.3s ease;
+        }
+
 
         /* Estilos para filas expandibles de proveedores */
         .expandable-row {
@@ -251,6 +303,47 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
             box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
             color: white !important;
         }
+
+        /* NUEVO: Resaltar filas según nivel de stock */
+        .row-critico {
+            background: rgba(231, 76, 60, 0.15) !important;
+        }
+        
+        .row-critico td {
+            background: rgba(231, 76, 60, 0.15) !important;
+        }
+
+        .row-bajo {
+            background: rgba(243, 156, 18, 0.15) !important;
+        }
+        
+        .row-bajo td {
+            background: rgba(243, 156, 18, 0.15) !important;
+        }
+        
+        /* Asegurar que los estilos de stock se vean */
+        .stock-critico {
+            color: #e74c3c !important;
+            font-weight: bold !important;
+            background: rgba(231, 76, 60, 0.2) !important;
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            display: inline-block;
+        }
+
+        .stock-bajo {
+            color: #f39c12 !important;
+            font-weight: bold !important;
+            background: rgba(243, 156, 18, 0.2) !important;
+            padding: 4px 8px !important;
+            border-radius: 8px !important;
+            display: inline-block;
+        }
+
+        .stock-normal {
+            color: #27ae60 !important;
+            font-weight: bold !important;
+        }
     </style>
 </head>
 <body>
@@ -260,10 +353,12 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
             const productos = <?php echo $productosJSON; ?>;
+            const stats = <?php echo $statsJSON; ?>;
             const estadoActual = '<?php echo $estadoActual; ?>';
             const tipoBusquedaActual = '<?php echo $tipoBusquedaActual; ?>';
             const busquedaActual = '<?php echo addslashes($busquedaActual); ?>';
             const ordenActual = '<?php echo $ordenActual; ?>';
+            const filtroStockActual = '<?php echo $filtroStockActual; ?>';
             
             let productosHTML = '';
             
@@ -273,9 +368,19 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                         ? '<span class="status-active">ACTIVO</span>' 
                         : '<span class="status-inactive">INACTIVO</span>';
                     
+                    // Convertir a números para comparación correcta
+                    const stockActual = parseInt(producto.stock_actual) || 0;
+                    const stockMinimo = parseInt(producto.stock_minimo) || 0;
+                    
                     let stockClass = 'stock-normal';
-                    if (producto.stock_actual <= producto.stock_minimo) {
-                        stockClass = producto.stock_actual == 0 ? 'stock-critico' : 'stock-bajo';
+                    let rowClass = '';
+                    
+                    if (stockActual === 0) {
+                        stockClass = 'stock-critico';
+                        rowClass = 'row-critico';
+                    } else if (stockActual <= stockMinimo) {
+                        stockClass = 'stock-bajo';
+                        rowClass = 'row-bajo';
                     }
                     
                     let proveedoresHTML = '';
@@ -288,13 +393,13 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                     }
                     
                     productosHTML += `
-                        <tr>
+                        <tr class="${rowClass}">
                             <td><strong>${producto.id}</strong></td>
                             <td>${producto.nombre_producto || '-'}</td>
                             <td>${producto.codigo_producto || '-'}</td>
-                            <td>$${parseFloat(producto.precio_venta).toFixed(2)}</td>
-                            <td class="${stockClass}">${producto.stock_actual || 0}</td>
-                            <td>${producto.stock_minimo || 0}</td>
+                            <td>${parseFloat(producto.precio_venta).toFixed(2)}</td>
+                            <td><span class="${stockClass}">${stockActual}</span></td>
+                            <td>${stockMinimo}</td>
                             <td>${estado}</td>
                             <td>
                                 <button class="expand-btn" onclick="toggleProviders(${index})" id="btn-${index}">
@@ -339,6 +444,25 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                 <div class='list-container'>
                     <h1 class='list-title'>Listado de Productos</h1>
                     
+                    <div class='stats-container'>
+                        <div class='stat-card'>
+                            <div class='stat-number stat-critico'>${stats.stock_critico || 0}</div>
+                            <div class='stat-label'>🔴 SIN STOCK</div>
+                        </div>
+                        <div class='stat-card'>
+                            <div class='stat-number stat-warning'>${stats.stock_bajo || 0}</div>
+                            <div class='stat-label'>⚠️ STOCK BAJO</div>
+                        </div>
+                        <div class='stat-card'>
+                            <div class='stat-number stat-success'>${stats.stock_normal || 0}</div>
+                            <div class='stat-label'>✅ STOCK NORMAL</div>
+                        </div>
+                        <div class='stat-card'>
+                            <div class='stat-number stat-info'>${stats.total_productos || 0}</div>
+                            <div class='stat-label'>📦 TOTAL PRODUCTOS</div>
+                        </div>
+                    </div>
+                    
                     <div class='filter-container'>
                         <form method='GET' action=''>
                             <label class='label'>Buscar Productos</label>
@@ -355,9 +479,9 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                                     </div>
                                 </div>
                                 
-                                <div class='search-field' style='flex: 1; min-width: 250px;'>
+                                <div class='search-field' style='flex: 1; min-width: 200px;'>
                                     <label>Término de búsqueda:</label>
-                                    <input type='text' name='busqueda' class='search-input' placeholder='Escribe aquí para buscar...' value='${busquedaActual}'>
+                                    <input type='text' name='busqueda' class='search-input' placeholder='Escribe aquí...' value='${busquedaActual}'>
                                 </div>
                                 
                                 <div class='search-field' style='min-width: 140px;'>
@@ -367,6 +491,18 @@ $ordenActual = isset($_GET['orden']) ? $_GET['orden'] : 'nombre_asc';
                                             <option value='99' ${estadoActual == '99' ? 'selected' : ''}> -- TODOS --</option>
                                             <option value='1' ${estadoActual == '1' ? 'selected' : ''}>ACTIVO</option>
                                             <option value='0' ${estadoActual == '0' ? 'selected' : ''}>INACTIVO</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class='search-field' style='min-width: 160px;'>
+                                    <label>Nivel Stock:</label>
+                                    <div class='select'>
+                                        <select name='filtro_stock' class='search-input'>
+                                            <option value='todos' ${filtroStockActual == 'todos' ? 'selected' : ''}>-- TODOS --</option>
+                                            <option value='critico' ${filtroStockActual == 'critico' ? 'selected' : ''}>🔴 Sin Stock</option>
+                                            <option value='bajo' ${filtroStockActual == 'bajo' ? 'selected' : ''}>⚠️ Stock Bajo</option>
+                                            <option value='normal' ${filtroStockActual == 'normal' ? 'selected' : ''}>✅ Stock Normal</option>
                                         </select>
                                     </div>
                                 </div>

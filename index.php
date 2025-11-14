@@ -88,6 +88,8 @@ $dataJSON = json_encode([
     <title>Magister Office</title>
     <link href="css/bulma.min.css" rel="stylesheet">
     <link href="css/estadisticas.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://kit.fontawesome.com/a2e0a1d6b5.js" crossorigin="anonymous"></script>
     <style>
         body { margin: 0; padding: 0; background: #2c3e50; }
         .main-content { background: #2c3e50 !important; color: white; padding: 20px; }
@@ -190,7 +192,6 @@ $dataJSON = json_encode([
             color: rgba(255,255,255,0.7);
             font-size: 0.9rem;
         }
-        /* NUEVO: Bienvenida con usuario */
         .welcome-message {
             background: rgba(52, 152, 219, 0.1);
             border: 2px solid rgba(52, 152, 219, 0.3);
@@ -202,6 +203,19 @@ $dataJSON = json_encode([
         .welcome-message strong {
             color: #f1c40f;
         }
+
+        /* ======================
+           CLASES PARA COLORES DE ICONOS
+           ====================== */
+        .icon-success { color: #2ecc71; }
+        .icon-warning { color: #e67e22; }
+        .icon-critico { color: #e74c3c; }
+        .icon-info { color: #3498db; }
+        .icon-primary { color: #f1c40f; }
+        .icon-primary2 { color: #f9d752ff; }
+        .icon-gold { color: gold; }
+        .icon-silver { color: silver; }
+        .icon-bronze { color: #cd7f32; }
     </style>
 </head>
 <body>
@@ -216,20 +230,19 @@ $dataJSON = json_encode([
             const formatMoney = (num) => '₲ ' + parseFloat(num).toLocaleString('es-PY', {minimumFractionDigits: 2});
             const fechaHoy = new Date().toLocaleDateString('es-PY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-            // Estado de caja
             let cajaAlertHTML = '';
             if (data.caja_abierta) {
                 const fechaApertura = new Date(data.caja_info.fecha_apertura).toLocaleString('es-PY');
                 cajaAlertHTML = `
                     <div class="caja-alert caja-abierta">
-                        ✅ CAJA ABIERTA desde ${fechaApertura}
+                        <i class="fa-solid fa-cash-register icon-success"></i> CAJA ABIERTA desde ${fechaApertura}
                         <br><small style="font-size: 0.9rem; font-weight: normal;">Saldo inicial: ${formatMoney(data.caja_info.saldo_inicial)}</small>
                     </div>
                 `;
             } else {
                 cajaAlertHTML = `
                     <div class="caja-alert caja-cerrada">
-                        ⚠️ CAJA CERRADA - Debes abrir caja para operar
+                        <i class="fa-solid fa-triangle-exclamation icon-critico"></i> CAJA CERRADA - Debes abrir caja para operar
                         <br><a href="caja/abrir_caja.php" style="color: white; text-decoration: underline; font-size: 0.95rem;">Clic aquí para abrir caja</a>
                     </div>
                 `;
@@ -239,11 +252,16 @@ $dataJSON = json_encode([
             let topProductosHTML = '';
             if (data.top_productos.length > 0) {
                 data.top_productos.forEach((prod, idx) => {
-                    const medalla = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '📦';
+                    const medallas = [
+                        '<i class="fa-solid fa-medal icon-gold"></i>',
+                        '<i class="fa-solid fa-medal icon-silver"></i>',
+                        '<i class="fa-solid fa-medal icon-bronze"></i>',
+                    ];
+                    const icon = medallas[idx] || '<i class="fa-solid fa-box icon-info"></i>';
                     topProductosHTML += `
                         <div class="producto-item">
                             <div>
-                                <div class="producto-nombre">${medalla} ${prod.descripcion}</div>
+                                <div class="producto-nombre">${icon} ${prod.descripcion}</div>
                                 <div class="producto-stats">Vendido: ${prod.total_vendido} unidades | Ingresos: ${formatMoney(prod.ingresos)}</div>
                             </div>
                         </div>
@@ -260,82 +278,82 @@ $dataJSON = json_encode([
                 </div>
 
                 <div class="welcome-message">
-                    👋 Bienvenido/a, <strong><?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></strong> (<?php echo $_SESSION['usuario_rol']; ?>)
+                    <i class="fa-solid fa-hand-wave icon-info"></i> Bienvenido/a, <strong><?php echo htmlspecialchars($_SESSION['usuario_nombre']); ?></strong> (<?php echo $_SESSION['usuario_rol']; ?>)
                 </div>
 
                 ${cajaAlertHTML}
 
                 <div class="quick-actions">
                     <a href="ventas/frm_registrar_venta.php" class="quick-btn">
-                        <div class="quick-btn-icon">💰</div>
+                        <div class="quick-btn-icon"><i class="fa-solid fa-hand-holding-dollar icon-success"></i></div>
                         <div>Nueva Venta</div>
                     </a>
                     <a href="caja/balance.php" class="quick-btn">
-                        <div class="quick-btn-icon">📊</div>
+                        <div class="quick-btn-icon"><i class="fa-solid fa-chart-pie icon-info"></i></div>
                         <div>Ver Caja</div>
                     </a>
                     <a href="productos/listado_producto.php" class="quick-btn">
-                        <div class="quick-btn-icon">📦</div>
+                        <div class="quick-btn-icon"><i class="fa-solid fa-box-open icon-info"></i></div>
                         <div>Productos</div>
                     </a>
                     <a href="compras/frm_registrar_compra.php" class="quick-btn">
-                        <div class="quick-btn-icon">🛒</div>
+                        <div class="quick-btn-icon"><i class="fa-solid fa-cart-shopping icon-primary2"></i></div>
                         <div>Nueva Compra</div>
                     </a>
                 </div>
 
-                <h2 class="section-title">💵 Resumen de Caja Hoy</h2>
+                <h2 class="section-title"><i class="fa-solid fa-money-bill-wave icon-success"></i> Resumen de Caja Hoy</h2>
                 <div class="stats-container">
                     <div class="stat-card">
                         <div class="stat-number stat-success">${formatMoney(data.ingresos_hoy)}</div>
-                        <div class="stat-label">💰 Ingresos Hoy</div>
+                        <div class="stat-label"><i class="fa-solid fa-arrow-trend-up icon-success"></i> Ingresos Hoy</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number stat-warning">${formatMoney(data.egresos_hoy)}</div>
-                        <div class="stat-label">💸 Egresos Hoy</div>
+                        <div class="stat-label"><i class="fa-solid fa-arrow-trend-down icon-warning"></i> Egresos Hoy</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number ${data.saldo_hoy >= 0 ? 'stat-success' : 'stat-critico'}">${formatMoney(data.saldo_hoy)}</div>
-                        <div class="stat-label">📊 Saldo Hoy</div>
+                        <div class="stat-label"><i class="fa-solid fa-scale-balanced icon-warning"></i> Saldo Hoy</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number stat-primary">${formatMoney(data.saldo_total)}</div>
-                        <div class="stat-label">💎 Saldo Total</div>
+                        <div class="stat-label"><i class="fa-solid fa-gem icon-primary"></i> Saldo Total</div>
                     </div>
                 </div>
 
-                <h2 class="section-title">📈 Ventas del Mes</h2>
+                <h2 class="section-title"><i class="fa-solid fa-chart-line icon-info"></i> Ventas del Mes</h2>
                 <div class="stats-container">
                     <div class="stat-card">
                         <div class="stat-number stat-info">${data.ventas_mes}</div>
-                        <div class="stat-label">🛍️ Total Ventas</div>
+                        <div class="stat-label"><i class="fa-solid fa-store icon-info"></i> Total Ventas</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number stat-success">${formatMoney(data.ingresos_mes)}</div>
-                        <div class="stat-label">💰 Ingresos Totales</div>
+                        <div class="stat-label"><i class="fa-solid fa-sack-dollar icon-success"></i> Ingresos Totales</div>
                     </div>
                 </div>
 
-                <h2 class="section-title">⚠️ Alertas de Inventario</h2>
+                <h2 class="section-title"><i class="fa-solid fa-triangle-exclamation icon-critico"></i> Alertas de Inventario</h2>
                 <div class="stats-container">
                     <div class="stat-card">
                         <div class="stat-number stat-critico">${data.stock_criticos}</div>
-                        <div class="stat-label">🔴 SIN STOCK</div>
+                        <div class="stat-label"><i class="fa-solid fa-circle-xmark icon-critico"></i> SIN STOCK</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number stat-warning">${data.stock_bajos}</div>
-                        <div class="stat-label">⚠️ STOCK BAJO</div>
+                        <div class="stat-label"><i class="fa-solid fa-circle-exclamation icon-warning"></i> STOCK BAJO</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number stat-info">${data.stock_total_problemas}</div>
-                        <div class="stat-label">📦 TOTAL ALERTAS</div>
+                        <div class="stat-label"><i class="fa-solid fa-boxes-stacked icon-info"></i> TOTAL ALERTAS</div>
                     </div>
                     <div class="stat-card" style="display: flex; align-items: center; justify-content: center;">
                         <a href="productos/listado_producto.php" style="color: #f1c40f; text-decoration: none; font-weight: bold;">Ver Productos →</a>
                     </div>
                 </div>
 
-                <h2 class="section-title">🏆 Top 5 Productos Más Vendidos</h2>
+                <h2 class="section-title"><i class="fa-solid fa-trophy icon-primary"></i> Top 5 Productos Más Vendidos</h2>
                 <div class="top-productos-list">
                     ${topProductosHTML}
                 </div>
@@ -345,4 +363,4 @@ $dataJSON = json_encode([
         });
     </script>
 </body>
-</html>
+</html
