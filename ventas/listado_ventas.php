@@ -29,7 +29,7 @@ if ($cliente !== "todos") {
 }
 
 if ($condicion !== "todos") {
-    $condiciones[] = "v.condicion_venta = '" . $conexion->quote($condicion) . "'";
+    $condiciones[] = "v.condicion_venta = " . $conexion->quote($condicion);
 }
 
 if (!empty($fecha_desde)) {
@@ -408,7 +408,11 @@ $clientesJSON = json_encode($clientes);
                     var botonesAccion = '';
                     
                     // IMPRIMIR: Disponible para TODAS las ventas con comprobante (activas Y anuladas)
-                    if (venta.tipo_comprobante) {
+                    if (venta.condicion_venta === 'CREDITO') {
+                        botonesAccion += '<a href="gestionar_cuotas.php?id_venta=' + venta.id + '" class="imprimir-link">📋 GESTIONAR CUOTAS</a>';
+                    }
+                    // Si es CONTADO y tiene comprobante → botón imprimir
+                    else if (venta.tipo_comprobante) {
                         botonesAccion += '<a href="imprimir_comprobante.php?id_venta=' + venta.id + '&tipo=' + venta.tipo_comprobante + '" target="_blank" class="imprimir-link">🖨️ IMPRIMIR</a>';
                     }
                     
