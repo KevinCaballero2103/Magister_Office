@@ -26,6 +26,7 @@ $permitir_factura = intval($config['permitir_anular_factura'] ?? 1);
 $requiere_motivo = intval($config['requiere_motivo_anulacion'] ?? 1);
 
 // Obtener datos de la venta con validaciones
+// Obtener datos de la venta con validaciones
 $sentenciaVenta = $conexion->prepare("
     SELECT 
         v.*,
@@ -45,6 +46,20 @@ if (!$venta) {
     exit();
 }
 
+// NUEVA VALIDACIÓN: Verificar cuotas pagadas en ventas a crédito
+$tiene_cuotas_pagadas = false;
+$cuotas_pagadas_count = 0;
+if ($venta->condicion_venta === 'CREDITO') {
+    $sentenciaVerificarCuotas = $conexion->prepare("
+        SELECT COUNT(*) as cuotas_pagadas 
+        FROM cuotas_venta 
+        WHERE id_venta = ? AND estado = 'PAGADA'
+    ");
+    $sentenciaVerificarCuotas->execute([$id_venta]);
+    $cuotas_pagadas_count = intval($sentenciaVerificarCuotas->fetchColumn());
+    $tiene_cuotas_pagadas = ($cuotas_pagadas_count > 0);
+}
+
 // Determinar si puede anularse
 $puede_anular = true;
 $motivo_bloqueo = "";
@@ -52,6 +67,12 @@ $motivo_bloqueo = "";
 if ($venta->estado_venta == 0) {
     $puede_anular = false;
     $motivo_bloqueo = "La venta ya se encuentra ANULADA desde " . date('d/m/Y H:i', strtotime($venta->fecha_anulacion));
+}
+
+// NUEVA VALIDACIÓN: Bloquear si tiene cuotas pagadas
+if ($tiene_cuotas_pagadas) {
+    $puede_anular = false;
+    $motivo_bloqueo = "Esta venta a CRÉDITO tiene $cuotas_pagadas_count cuota(s) ya pagada(s). Las ventas a crédito solo pueden anularse si ninguna cuota ha sido cobrada.";
 }
 
 if ($venta->dias_transcurridos > $dias_limite) {
@@ -373,6 +394,7 @@ $requiereMotivo = $requiere_motivo ? 'true' : 'false';
                             <p style="padding: 5px 0; color: rgba(255,255,255,0.9);">
                                 ✓ Registrar en historial de anulaciones
                             </p>
+                            ${venta.condicion_venta === 'CREDITO' ? '<p style="padding: 5px 0; color: #e67e22; font-weight: bold;">✓ Eliminar todas las cuotas pendientes (ninguna ha sido pagada)</p>' : ''}
                             ${tipoDoc === 'FACTURA' ? '<p style="padding: 5px 0; color: rgba(255,255,255,0.9);">✓ Generar nota de crédito (según configuración)</p>' : ''}
                         </div>
                     </div>

@@ -409,11 +409,27 @@ $clientesJSON = json_encode($clientes);
                     
                     // IMPRIMIR: Disponible para TODAS las ventas con comprobante (activas Y anuladas)
                     if (venta.condicion_venta === 'CREDITO') {
-                        botonesAccion += '<a href="gestionar_cuotas.php?id_venta=' + venta.id + '" class="imprimir-link">📋 GESTIONAR CUOTAS</a>';
+
+                        // Si está ACTIVA → gestionar cuotas
+                        if (venta.estado_venta == 1) {
+                            botonesAccion += '<a href="gestionar_cuotas.php?id_venta=' + venta.id + '" class="imprimir-link">📋 GESTIONAR CUOTAS</a>';
+                        }
+
+                        // Si está ANULADA → imprimir comprobante (factura anulada)
+                        else if (venta.estado_venta == 0 && venta.tipo_comprobante) {
+                            botonesAccion += '<a href="imprimir_comprobante.php?id_venta=' + venta.id +
+                                            '&tipo=' + venta.tipo_comprobante +
+                                            '" target="_blank" class="imprimir-link">🖨️ IMPRIMIR</a>';
+                        }
                     }
-                    // Si es CONTADO y tiene comprobante → botón imprimir
-                    else if (venta.tipo_comprobante) {
-                        botonesAccion += '<a href="imprimir_comprobante.php?id_venta=' + venta.id + '&tipo=' + venta.tipo_comprobante + '" target="_blank" class="imprimir-link">🖨️ IMPRIMIR</a>';
+
+                    // Venta CONTADO
+                    else {
+                        if (venta.tipo_comprobante) {
+                            botonesAccion += '<a href="imprimir_comprobante.php?id_venta=' + venta.id +
+                                            '&tipo=' + venta.tipo_comprobante +
+                                            '" target="_blank" class="imprimir-link">🖨️ IMPRIMIR</a>';
+                        }
                     }
                     
                     // ANULAR: Solo para ventas ACTIVAS

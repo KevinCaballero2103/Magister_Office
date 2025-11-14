@@ -49,8 +49,9 @@ try {
     // ===== PASO 2: VERIFICAR LA VENTA =====
     $sentenciaVenta = $conexion->prepare("
         SELECT v.*, 
-               CONCAT(COALESCE(c.nombre_cliente, ''), ' ', COALESCE(c.apellido_cliente, '')) as nombre_cliente,
-               DATEDIFF(NOW(), v.fecha_venta) as dias_transcurridos
+            CONCAT(COALESCE(c.nombre_cliente, ''), ' ', COALESCE(c.apellido_cliente, '')) as nombre_cliente,
+            c.ci_ruc_cliente,
+            DATEDIFF(NOW(), v.fecha_venta) as dias_transcurridos
         FROM ventas v
         LEFT JOIN clientes c ON v.id_cliente = c.id
         WHERE v.id = ?
@@ -65,6 +66,21 @@ try {
     // Validar si ya está anulada
     if ($venta->estado_venta == 0) {
         throw new Exception("La venta #$id_venta ya se encuentra ANULADA desde " . date('d/m/Y H:i', strtotime($venta->fecha_anulacion)));
+    }
+
+    // NUEVA VALIDACIÓN: Verificar si es venta a crédito con cuotas pagadas
+    if ($venta->condicion_venta === 'CREDITO') {
+        $sentenciaVerificarCuotas = $conexion->prepare("
+            SELECT COUNT(*) as cuotas_pagadas 
+            FROM cuotas_venta 
+            WHERE id_venta = ? AND estado = 'PAGADA'
+        ");
+        $sentenciaVerificarCuotas->execute([$id_venta]);
+        $cuotas_pagadas = intval($sentenciaVerificarCuotas->fetchColumn());
+        
+        if ($cuotas_pagadas > 0) {
+            throw new Exception("No se puede anular esta venta a CRÉDITO porque ya tiene $cuotas_pagadas cuota(s) pagada(s). Las ventas a crédito solo pueden anularse si ninguna cuota ha sido cobrada.");
+        }
     }
 
     // Validar plazo de anulación
@@ -108,11 +124,25 @@ try {
     ");
     $sentenciaStockActual = $conexion->prepare("SELECT stock_actual FROM productos WHERE id = ?");
 
+    // NUEVA: Verificar que el producto existe
+    $sentenciaVerificarProducto = $conexion->prepare("SELECT id FROM productos WHERE id = ?");
+
     $productosRevertidos = 0;
     $serviciosContados = 0;
+    $productosNoExisten = []; // Para registrar productos que ya no existen
 
     foreach ($detalles as $detalle) {
         if ($detalle->tipo_item === 'PRODUCTO') {
+            // VERIFICAR QUE EL PRODUCTO EXISTE
+            $sentenciaVerificarProducto->execute([$detalle->id_item]);
+            $productoExiste = $sentenciaVerificarProducto->fetch(PDO::FETCH_OBJ);
+            
+            if (!$productoExiste) {
+                // El producto fue eliminado, no podemos revertir el stock
+                $productosNoExisten[] = $detalle->descripcion . " (ID: {$detalle->id_item})";
+                continue; // Saltar al siguiente item
+            }
+            
             // Obtener stock actual
             $sentenciaStockActual->execute([$detalle->id_item]);
             $stockAnterior = intval($sentenciaStockActual->fetchColumn());
@@ -137,6 +167,11 @@ try {
         } else {
             $serviciosContados++;
         }
+    }
+
+    // Si hay productos que no existen, agregar advertencia
+    if (count($productosNoExisten) > 0) {
+        $detalles_anulacion['productos_no_existen'] = $productosNoExisten;
     }
 
     // ===== PASO 5: MOVIMIENTO INVERSO EN CAJA =====
@@ -186,6 +221,17 @@ try {
 
     if (!$resultadoAnular) {
         throw new Exception("Error al actualizar el estado de la venta.");
+    }
+
+    // ===== PASO 6.5: ELIMINAR CUOTAS SI ES VENTA A CRÉDITO =====
+    $cuotas_eliminadas = 0;
+    if ($venta->condicion_venta === 'CREDITO') {
+        $sentenciaEliminarCuotas = $conexion->prepare("DELETE FROM cuotas_venta WHERE id_venta = ?");
+        $resultadoEliminarCuotas = $sentenciaEliminarCuotas->execute([$id_venta]);
+        
+        if ($resultadoEliminarCuotas) {
+            $cuotas_eliminadas = $sentenciaEliminarCuotas->rowCount();
+        }
     }
 
     // ===== PASO 7: REGISTRAR EN HISTORIAL DE ANULACIONES =====
@@ -257,7 +303,11 @@ try {
     $mensaje .= "✅ Stock revertido ($productosRevertidos producto(s))<br>";
     $mensaje .= "✅ Movimiento inverso en caja registrado<br>";
     $mensaje .= "✅ Historial de anulación guardado<br>";
-    
+
+    if ($venta->condicion_venta === 'CREDITO' && $cuotas_eliminadas > 0) {
+        $mensaje .= "✅ <strong>$cuotas_eliminadas</strong> cuota(s) eliminada(s)<br>";
+    }
+
     if ($nota_credito_generada) {
         $mensaje .= "✅ Nota de crédito generada: <strong>" . $detalles_anulacion['numero_nota_credito'] . "</strong><br>";
     } else if ($venta->tipo_comprobante === 'FACTURA') {
