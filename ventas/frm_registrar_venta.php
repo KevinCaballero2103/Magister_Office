@@ -43,13 +43,12 @@ $sentenciaUltimaFactura->execute();
 $ultimaFactura = $sentenciaUltimaFactura->fetchColumn();
 
 if ($ultimaFactura) {
-    // Extraer el número de la factura (últimos 7 dígitos)
     $ultimoNumero = intval(substr($ultimaFactura, -7));
     $FACTURA_NUMERO = $ultimoNumero + 1;
 } else {
-    // Si no hay facturas previas, empezar desde 826
-    $siguienteNumero = 826;
+    $FACTURA_NUMERO = 851;
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -82,6 +81,11 @@ if ($ultimaFactura) {
         .info-message { background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 15px; color: #3498db; font-size: 0.9rem; }
         .iva-info { background: rgba(230, 126, 34, 0.1); border: 1px solid rgba(230, 126, 34, 0.3); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 0.85rem; color: #e67e22; }
         .total-section { background: rgba(39, 174, 96, 0.1); border: 2px solid rgba(39, 174, 96, 0.3); padding: 20px; border-radius: 10px; margin-top: 20px; }
+        select.input option {
+            background: #2c3e50 !important;
+            color: white !important;
+        }
+
     </style>
 </head>
 <body>
