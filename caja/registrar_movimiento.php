@@ -11,8 +11,13 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Movimiento de Caja</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <link href="../css/bulma.min.css" rel="stylesheet">
     <link href="../css/formularios.css" rel="stylesheet">
+
     <style>
         .main-content { background: #2c3e50 !important; color: white; }
         .tipo-selector {
@@ -31,13 +36,8 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
             text-align: center;
             border: 3px solid transparent;
         }
-        .tipo-btn input[type="radio"] {
-            display: none;
-        }
-        .tipo-btn label {
-            cursor: pointer;
-            display: block;
-        }
+        .tipo-btn input[type="radio"] { display: none; }
+        .tipo-btn label { cursor: pointer; display: block; }
         .tipo-btn .tipo-icon {
             font-size: 3rem;
             margin-bottom: 10px;
@@ -76,11 +76,22 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
             margin-bottom: 20px;
             text-align: center;
         }
+        
+        /* Colores de iconos */
+        .icon-titulo { color: #f1c40f; }
+        .icon-ingreso { color: #27ae60; }
+        .icon-egreso { color: #e74c3c; }
+        .icon-usuario { color: #3498db; }
+        .icon-guardar { color: #2980b9; }
+        .icon-limpiar { color: #f39c12; }
+        .icon-balance { color: #1a5490; }
+        .icon-alerta { color: #f1c40f; }
     </style>
 </head>
 <body>
+
     <?php include '../menu.php'; ?>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mainContent = document.querySelector('.main-content');
@@ -88,7 +99,7 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
 
             const usuarioNombre = '<?php echo addslashes($_SESSION['usuario_nombre']); ?>';
 
-            // Fecha/hora actual
+            // Fecha y hora actual
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -99,30 +110,34 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
 
             const formHTML = `
                 <div class="form-container">
-                    <h1 class="form-title">💵 Registrar Movimiento de Caja</h1>
+                    <h1 class="form-title">
+                        <i class="fa-solid fa-money-bill-wave icon-titulo"></i> Registrar Movimiento de Caja
+                    </h1>
                     
                     <div class="info-usuario">
-                        👤 Movimiento registrado por: <strong style="color: #f1c40f;">${usuarioNombre}</strong>
+                        <i class="fa-solid fa-user icon-usuario"></i> Movimiento registrado por: 
+                        <strong style="color: #f1c40f;">${usuarioNombre}</strong>
                     </div>
                     
                     <form action="./guardar_movimiento.php" method="post" onsubmit="return validateForm()">
+                        
                         <!-- Selector de Tipo -->
                         <div class="tipo-selector">
                             <div class="tipo-btn ingreso" onclick="selectTipo('INGRESO')">
                                 <input type="radio" name="tipo_movimiento" id="tipo_ingreso" value="INGRESO" required>
                                 <label for="tipo_ingreso">
-                                    <div class="tipo-icon">💰</div>
+                                    <div class="tipo-icon"><i class="fa-solid fa-sack-dollar icon-ingreso"></i></div>
                                     <div class="tipo-label">INGRESO</div>
-                                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 5px;">Entrada de dinero</div>
+                                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Entrada de dinero</div>
                                 </label>
                             </div>
                             
                             <div class="tipo-btn egreso" onclick="selectTipo('EGRESO')">
                                 <input type="radio" name="tipo_movimiento" id="tipo_egreso" value="EGRESO" required>
                                 <label for="tipo_egreso">
-                                    <div class="tipo-icon">💸</div>
+                                    <div class="tipo-icon"><i class="fa-solid fa-money-bill-transfer icon-egreso"></i></div>
                                     <div class="tipo-label">EGRESO</div>
-                                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 5px;">Salida de dinero</div>
+                                    <div style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">Salida de dinero</div>
                                 </label>
                             </div>
                         </div>
@@ -145,16 +160,16 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
                                 </div>
 
                                 <div class="field">
-                                    <label class="label">Concepto (Descripción) *</label>
+                                    <label class="label">Concepto *</label>
                                     <div class="control">
-                                        <input class="input" type="text" name="concepto" id="concepto" placeholder="Ej: Pago de luz, Retiro para banco, etc." required maxlength="200">
+                                        <input class="input" type="text" name="concepto" id="concepto" required maxlength="200" placeholder="Ej: Pago de luz">
                                     </div>
                                 </div>
 
                                 <div class="field">
                                     <label class="label">Monto *</label>
                                     <div class="control">
-                                        <input class="input" type="number" step="0.01" min="0.01" name="monto" id="monto" placeholder="0.00" required style="font-size: 1.3rem; font-weight: bold;">
+                                        <input class="input" type="number" step="0.01" min="0.01" name="monto" id="monto" required style="font-size: 1.3rem; font-weight: bold;">
                                     </div>
                                 </div>
                             </div>
@@ -165,7 +180,6 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
                                     <div class="control">
                                         <input class="input" type="datetime-local" name="fecha_movimiento" id="fecha_movimiento" value="${fechaHoraActual}" required>
                                     </div>
-                                    <p class="help" style="color: rgba(255,255,255,0.7);">Puedes registrar movimientos de días anteriores</p>
                                 </div>
 
                                 <div class="field">
@@ -180,22 +194,29 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
                         <!-- Botones -->
                         <div class="field is-grouped" style="justify-content: center; margin-top: 30px;">
                             <div class="control">
-                                <button type="submit" class="button">💾 Guardar Movimiento</button>
+                                <button type="submit" class="button">
+                                    <i class="fa-solid fa-floppy-disk icon-guardar"></i> Guardar Movimiento
+                                </button>
                             </div>
                             <div class="control">
-                                <button type="reset" class="button" onclick="resetForm()">🔄 Limpiar</button>
+                                <button type="reset" class="button" onclick="resetForm()">
+                                    <i class="fa-solid fa-rotate icon-limpiar"></i> Limpiar
+                                </button>
                             </div>
                             <div class="control">
-                                <a href="./balance.php" class="secondary-button">📊 Ver Balance</a>
+                                <a href="./balance.php" class="secondary-button">
+                                    <i class="fa-solid fa-chart-column icon-balance"></i> Ver Balance
+                                </a>
                             </div>
                         </div>
+
                     </form>
                 </div>
             `;
 
             mainContent.innerHTML = formHTML;
 
-            // Funciones globales
+            // ===== Funciones =====
             window.selectTipo = function(tipo) {
                 document.getElementById('tipo_' + tipo.toLowerCase()).checked = true;
                 document.querySelectorAll('.tipo-btn').forEach(btn => btn.classList.remove('selected'));
@@ -209,27 +230,27 @@ registrarActividad('ACCESO', 'CAJA', 'Acceso a registro de movimiento manual', n
                 const monto = parseFloat(document.getElementById('monto').value);
 
                 if (!tipo) {
-                    alert('⚠️ Selecciona el tipo de movimiento (INGRESO o EGRESO)');
+                    alert('⚠️ Selecciona el tipo de movimiento');
                     return false;
                 }
-
                 if (!categoria) {
                     alert('⚠️ Selecciona una categoría');
                     return false;
                 }
-
                 if (!concepto) {
-                    alert('⚠️ Ingresa un concepto/descripción');
+                    alert('⚠️ Ingresa un concepto');
                     return false;
                 }
-
                 if (!monto || monto <= 0) {
                     alert('⚠️ El monto debe ser mayor a 0');
                     return false;
                 }
 
                 const tipoLabel = tipo.value === 'INGRESO' ? 'INGRESO' : 'EGRESO';
-                return confirm(`¿Confirmar ${tipoLabel} de ₲ ${monto.toLocaleString('es-PY')}?\\n\\nConcepto: ${concepto}`);
+
+                return confirm(
+                    `¿Confirmar ${tipoLabel} de ₲ ${monto.toLocaleString('es-PY')}?\n\nConcepto: ${concepto}`
+                );
             };
 
             window.resetForm = function() {
